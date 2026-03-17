@@ -457,21 +457,6 @@
               <div id="progressionStrip" class="mt-3 flex flex-wrap gap-2"></div>
             </div>
 
-            <div class="hidden sm:block rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
-              <div class="flex items-center justify-between gap-3">
-                <div>
-                  <div class="text-xs text-slate-400">History</div>
-                  <div class="text-sm text-slate-300">Last 5 chords you clicked</div>
-                </div>
-                <button
-                  id="clearHistoryBtn"
-                  class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
-                >
-                  Clear
-                </button>
-              </div>
-              <div id="historyStrip" class="mt-3 flex flex-wrap gap-2"></div>
-            </div>
           </div>
         </div>
 
@@ -529,21 +514,21 @@
           ></div>
         </div>
 
-        <!-- History (mobile) -->
-        <div class="sm:hidden rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
+        <!-- History (always last) -->
+        <div class="lg:col-span-12 rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
           <div class="flex items-center justify-between gap-3">
             <div>
               <div class="text-xs text-slate-400">History</div>
               <div class="text-sm text-slate-300">Last 5 chords you clicked</div>
             </div>
             <button
-              id="clearHistoryBtnMobile"
+              id="clearHistoryBtn"
               class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
             >
               Clear
             </button>
           </div>
-          <div id="historyStripMobile" class="mt-3 flex flex-wrap gap-2"></div>
+          <div id="historyStrip" class="mt-3 flex flex-wrap gap-2"></div>
         </div>
       </section>
 
@@ -662,9 +647,7 @@
         playProgBtn: document.getElementById("playProgBtn"),
         clearProgBtn: document.getElementById("clearProgBtn"),
         historyStrip: document.getElementById("historyStrip"),
-        historyStripMobile: document.getElementById("historyStripMobile"),
         clearHistoryBtn: document.getElementById("clearHistoryBtn"),
-        clearHistoryBtnMobile: document.getElementById("clearHistoryBtnMobile"),
         playBtn: document.getElementById("playBtn"),
         audioBtn: document.getElementById("audioBtn"),
         colorTriad: document.getElementById("colorTriad"),
@@ -1217,9 +1200,7 @@
 
       function renderHistory() {
         if (el.historyStrip) el.historyStrip.innerHTML = "";
-        if (el.historyStripMobile) el.historyStripMobile.innerHTML = "";
-
-        const targets = [el.historyStrip, el.historyStripMobile].filter(Boolean);
+        const targets = [el.historyStrip].filter(Boolean);
         if (!history.length) {
           for (const target of targets) {
             const empty = document.createElement("div");
@@ -1645,11 +1626,6 @@
       }
 
       el.clearHistoryBtn.addEventListener("click", () => {
-        history = [];
-        renderHistory();
-      });
-
-      el.clearHistoryBtnMobile?.addEventListener("click", () => {
         history = [];
         renderHistory();
       });
