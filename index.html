@@ -133,10 +133,10 @@
         class="fixed inset-0 z-50 hidden"
         aria-hidden="true"
       >
-        <div id="howBackdrop" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"></div>
-        <div class="relative mx-auto flex h-full max-w-3xl items-center justify-center px-4 py-8">
+        <div id="howBackdrop" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm z-0"></div>
+        <div class="relative z-10 mx-auto flex h-full max-w-3xl items-center justify-center px-4 py-8 pointer-events-none">
           <div
-            class="w-full rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl"
+            class="w-full rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl pointer-events-auto"
             role="dialog"
             aria-modal="true"
             aria-labelledby="howTitle"
@@ -148,12 +148,6 @@
                   How to use Find The Chord
                 </h2>
               </div>
-              <button
-                id="howCloseBtn"
-                class="rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200 hover:bg-slate-900/70 active:scale-[0.99] transition"
-              >
-                Close
-              </button>
             </div>
 
             <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -181,6 +175,8 @@
                   <li>Use <span class="font-medium text-slate-200">Add</span> to append the current chord.</li>
                   <li>Reorder with <span class="font-medium text-slate-200">← / →</span>, remove with <span class="font-medium text-slate-200">×</span>.</li>
                   <li><span class="font-medium text-slate-200">Play</span> plays the whole progression with separation between chords.</li>
+                  <li>Use <span class="font-medium text-slate-200">BPM</span> to set playback speed, and <span class="font-medium text-slate-200">Voice-lead</span> to smooth transitions.</li>
+                  <li><span class="font-medium text-slate-200">Copy</span> exports your progression as shareable text.</li>
                 </ul>
               </div>
 
@@ -202,7 +198,16 @@
             </div>
 
             <div class="mt-4 text-xs text-slate-500">
-              Close this window with <span class="text-slate-300">Esc</span> or by clicking the backdrop.
+              Close this window with <span class="text-slate-300">Esc</span>, the close buttons, or by tapping the backdrop.
+            </div>
+
+            <div class="mt-4">
+              <button
+                id="howCloseBottomBtn"
+                class="w-full rounded-xl bg-slate-900/40 border border-slate-800 px-3 py-2 text-sm text-slate-200 hover:bg-slate-900/70 active:scale-[0.99] transition"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
@@ -342,7 +347,29 @@
                   <div class="text-xs text-slate-400">Progression</div>
                   <div class="text-sm text-slate-300">User-controlled chord row</div>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center justify-end gap-2">
+                  <div class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
+                    <div class="text-[11px] text-slate-400">BPM</div>
+                    <input
+                      id="bpmRange"
+                      type="range"
+                      min="60"
+                      max="160"
+                      value="90"
+                      class="w-28 accent-cyan-300"
+                    />
+                    <div id="bpmLabel" class="w-10 text-right text-[11px] text-slate-200">90</div>
+                  </div>
+                  <label class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
+                    <input id="vlToggle" type="checkbox" checked class="accent-emerald-300" />
+                    <span class="text-[11px] text-slate-200">Voice-lead</span>
+                  </label>
+                  <button
+                    id="copyProgBtn"
+                    class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+                  >
+                    Copy
+                  </button>
                   <button
                     id="playProgBtn"
                     class="rounded-xl bg-cyan-500/10 border border-cyan-400/20 px-3 py-2 text-xs text-cyan-200 hover:bg-cyan-500/14 active:scale-[0.99] transition"
@@ -482,6 +509,8 @@
       let history = [];
       /** @type {Array<{name: string; roman: string; notes: string[]}>} */
       let progression = [];
+      let progressionBpm = 90;
+      let progressionVoiceLeading = true;
 
       let synth = null;
       let audioReady = false;
@@ -496,7 +525,7 @@
         howBtn: document.getElementById("howBtn"),
         howModal: document.getElementById("howModal"),
         howBackdrop: document.getElementById("howBackdrop"),
-        howCloseBtn: document.getElementById("howCloseBtn"),
+        howCloseBottomBtn: document.getElementById("howCloseBottomBtn"),
         diatonicGrid: document.getElementById("diatonicGrid"),
         smoothGrid: document.getElementById("smoothGrid"),
         spiceGrid: document.getElementById("spiceGrid"),
@@ -505,6 +534,10 @@
         currentNotes: document.getElementById("currentNotes"),
         addToProgBtn: document.getElementById("addToProgBtn"),
         progressionStrip: document.getElementById("progressionStrip"),
+        bpmRange: document.getElementById("bpmRange"),
+        bpmLabel: document.getElementById("bpmLabel"),
+        vlToggle: document.getElementById("vlToggle"),
+        copyProgBtn: document.getElementById("copyProgBtn"),
         playProgBtn: document.getElementById("playProgBtn"),
         clearProgBtn: document.getElementById("clearProgBtn"),
         historyStrip: document.getElementById("historyStrip"),
@@ -1038,6 +1071,46 @@
         return voiced;
       }
 
+      function voiceLedVoicing(pitchClasses, prevVoiced) {
+        const pcs = (pitchClasses || []).map(normalizePc).filter(Boolean);
+        if (!pcs.length) return [];
+
+        const root = pcs[0];
+        const others = pcs.slice(1);
+
+        const bass = `${root}3`;
+        const bassMidi = Tone.Frequency(bass).toMidi();
+
+        const prevUpper = Array.isArray(prevVoiced) ? prevVoiced.slice(1) : [];
+        const prevMidis = prevUpper.map((n) => Tone.Frequency(n).toMidi());
+
+        /** Choose a note name for a pitch class near target midi. */
+        function chooseNear(pc, targetMidi, minMidi) {
+          // Candidate octaves in a musical range for upper voices
+          const candidates = [];
+          for (let oct = 4; oct <= 6; oct++) {
+            const n = `${pc}${oct}`;
+            candidates.push({ n, m: Tone.Frequency(n).toMidi() });
+          }
+          candidates.sort((a, b) => Math.abs(a.m - targetMidi) - Math.abs(b.m - targetMidi));
+          const pick = candidates.find((c) => c.m > minMidi) || candidates[candidates.length - 1];
+          return pick.n;
+        }
+
+        const voiced = [bass];
+        let lastMidi = bassMidi;
+
+        for (let i = 0; i < others.length; i++) {
+          const pc = others[i];
+          const target = typeof prevMidis[i] === "number" ? prevMidis[i] : 72; // default around C5
+          const chosen = chooseNear(pc, target, lastMidi + 1);
+          voiced.push(chosen);
+          lastMidi = Tone.Frequency(chosen).toMidi();
+        }
+
+        return voiced;
+      }
+
       function playCurrentChord() {
         if (!currentChord?.notes?.length) return;
         if (!ensureAudio()) return;
@@ -1050,11 +1123,15 @@
         if (!progression.length) return;
         if (!ensureAudio()) return;
         const now = Tone.now();
-        const step = 1.15; // more space between chords
+        const beat = 60 / Math.max(40, Math.min(240, progressionBpm || 90));
+        const step = beat * 2; // half-note feel
+        const dur = Math.max(0.55, step * 0.75);
+        let prev = null;
         progression.forEach((p, i) => {
-          const voiced = spreadVoicing(p.notes || []);
+          const voiced = progressionVoiceLeading ? voiceLedVoicing(p.notes || [], prev) : spreadVoicing(p.notes || []);
           if (!voiced.length) return;
-          synth.triggerAttackRelease(voiced, 0.95, now + i * step, 0.85);
+          synth.triggerAttackRelease(voiced, dur, now + i * step, 0.85);
+          prev = voiced;
         });
       }
 
@@ -1207,7 +1284,7 @@
       }
 
       el.howBtn?.addEventListener("click", () => openHow());
-      el.howCloseBtn?.addEventListener("click", () => closeHow());
+      el.howCloseBottomBtn?.addEventListener("click", () => closeHow());
       el.howBackdrop?.addEventListener("click", () => closeHow());
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeHow();
@@ -1221,6 +1298,58 @@
       });
 
       el.playProgBtn?.addEventListener("click", () => playProgression());
+
+      function progressionText() {
+        if (!progression.length) return "";
+        return progression.map((p) => p.name).join(" \u2192 ");
+      }
+
+      async function copyTextToClipboard(text) {
+        if (!text) return false;
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+            return true;
+          }
+        } catch {
+          // fallback below
+        }
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          ta.style.position = "fixed";
+          ta.style.left = "-9999px";
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          const ok = document.execCommand("copy");
+          document.body.removeChild(ta);
+          return ok;
+        } catch {
+          return false;
+        }
+      }
+
+      el.copyProgBtn?.addEventListener("click", async () => {
+        const text = progressionText();
+        const ok = await copyTextToClipboard(text);
+        setStatus(ok ? `Copied progression: ${text}` : `Copy failed. Progression: ${text}`);
+      });
+
+      function syncProgressionControls() {
+        if (el.bpmRange) el.bpmRange.value = String(progressionBpm);
+        if (el.bpmLabel) el.bpmLabel.textContent = String(progressionBpm);
+        if (el.vlToggle) el.vlToggle.checked = !!progressionVoiceLeading;
+      }
+
+      el.bpmRange?.addEventListener("input", () => {
+        progressionBpm = Number(el.bpmRange.value) || 90;
+        if (el.bpmLabel) el.bpmLabel.textContent = String(progressionBpm);
+      });
+
+      el.vlToggle?.addEventListener("change", () => {
+        progressionVoiceLeading = !!el.vlToggle.checked;
+      });
 
       el.diagBtn?.addEventListener("click", () => {
         const snap = diagnosticsSnapshot();
@@ -1300,6 +1429,7 @@
 
       (async () => {
         initSelectors(); // should always populate the dropdown, even if libs fail
+        syncProgressionControls();
         renderHistory();
         renderProgression();
         buildPiano(); // visual-only; no libs required
