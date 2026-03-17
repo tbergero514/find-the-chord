@@ -170,22 +170,22 @@
               </div>
 
               <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
-                <div class="text-sm font-semibold">3) Build a progression you control</div>
+                <div class="text-sm font-semibold">3) Understand the suggestion grids</div>
+                <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
+                  <li><span class="font-medium text-slate-200">Diatonic</span>: the 7 chords inside the scale.</li>
+                  <li><span class="font-medium text-slate-200">Smooth Subs</span>: diatonic substitutes sharing 2+ notes.</li>
+                  <li><span class="font-medium text-slate-200">Harmonic Spice</span>: secondary dominants, borrowed chords, tritone subs.</li>
+                </ul>
+              </div>
+
+              <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
+                <div class="text-sm font-semibold">4) Build a progression you control</div>
                 <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
                   <li>Use <span class="font-medium text-slate-200">Add</span> to append the current chord.</li>
                   <li>Reorder with <span class="font-medium text-slate-200">← / →</span>, remove with <span class="font-medium text-slate-200">×</span>.</li>
                   <li><span class="font-medium text-slate-200">Play</span> plays the whole progression with separation between chords.</li>
                   <li>Use <span class="font-medium text-slate-200">BPM</span> to set playback speed, and <span class="font-medium text-slate-200">Voice-lead</span> to smooth transitions.</li>
                   <li><span class="font-medium text-slate-200">Copy</span> exports your progression as shareable text.</li>
-                </ul>
-              </div>
-
-              <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
-                <div class="text-sm font-semibold">4) Understand the suggestion grids</div>
-                <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
-                  <li><span class="font-medium text-slate-200">Diatonic</span>: the 7 chords inside the scale.</li>
-                  <li><span class="font-medium text-slate-200">Smooth Subs</span>: diatonic substitutes sharing 2+ notes.</li>
-                  <li><span class="font-medium text-slate-200">Harmonic Spice</span>: secondary dominants, borrowed chords, tritone subs.</li>
                 </ul>
               </div>
             </div>
@@ -405,44 +405,49 @@
           </div>
         </div>
 
-        <!-- Diatonic -->
+        <!-- Suggestion Engine (Tabbed) -->
         <div class="lg:col-span-7 rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
-          <div class="flex items-center justify-between gap-3">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <div class="text-xs text-slate-400">Suggestion Engine</div>
-              <h2 class="mt-1 text-lg font-semibold">Diatonic</h2>
-              <p class="text-sm text-slate-400">The 7 primary chords of the scale.</p>
+              <h2 id="suggestTitle" class="mt-1 text-lg font-semibold">Diatonic</h2>
+              <p id="suggestDesc" class="text-sm text-slate-400">The 7 primary chords of the scale.</p>
             </div>
-          </div>
-          <div id="diatonicGrid" class="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2"></div>
-        </div>
 
-        <!-- Smooth Subs -->
-        <div class="lg:col-span-7 rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
-          <div class="flex items-center justify-between gap-3">
-            <div>
-              <div class="text-xs text-slate-400">Suggestion Engine</div>
-              <h2 class="mt-1 text-lg font-semibold">Smooth Subs</h2>
-              <p class="text-sm text-slate-400">
-                Relative major/minor + median substitutes (share 2+ notes with a diatonic triad).
-              </p>
+            <div class="flex flex-col items-end gap-2">
+              <button
+                id="suggestAddBtn"
+                class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+              >
+                Add
+              </button>
+              <div class="grid grid-cols-3 items-center rounded-xl border border-slate-800 bg-slate-950/35 p-1 w-full max-w-[420px]">
+                <button
+                  id="tabDiatonic"
+                  class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap"
+                >
+                  Diatonic
+                </button>
+                <button
+                  id="tabSmooth"
+                  class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap"
+                >
+                  Smooth Subs
+                </button>
+                <button
+                  id="tabSpice"
+                  class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap"
+                >
+                  Harmonic Spice
+                </button>
+              </div>
             </div>
           </div>
-          <div id="smoothGrid" class="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2"></div>
-        </div>
 
-        <!-- Harmonic Spice -->
-        <div class="lg:col-span-5 rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
-          <div class="flex items-center justify-between gap-3">
-            <div>
-              <div class="text-xs text-slate-400">Suggestion Engine</div>
-              <h2 class="mt-1 text-lg font-semibold">Harmonic Spice</h2>
-              <p class="text-sm text-slate-400">
-                Secondary dominants, borrowed chords, and tritone substitutions.
-              </p>
-            </div>
-          </div>
-          <div id="spiceGrid" class="mt-4 grid grid-cols-2 gap-2"></div>
+          <div
+            id="suggestGrid"
+            class="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2"
+          ></div>
         </div>
       </section>
 
@@ -501,10 +506,13 @@
         root: "C",
         mode: "major",
         ext: "triad", // "triad" | "7" | "9"
+        suggestTab: "diatonic", // "diatonic" | "smooth" | "spice"
       };
 
       /** @type {{name: string; notes: string[]; roman: string; tag?: string; flavor?: string} | null} */
       let currentChord = null;
+      /** @type {{ triads: any[]; smoothSubs: any[]; spice: any[] } | null} */
+      let lastSuggestions = null;
       /** @type {Array<{label: string; name: string; roman: string}>} */
       let history = [];
       /** @type {Array<{name: string; roman: string; notes: string[]}>} */
@@ -526,9 +534,13 @@
         howModal: document.getElementById("howModal"),
         howBackdrop: document.getElementById("howBackdrop"),
         howCloseBottomBtn: document.getElementById("howCloseBottomBtn"),
-        diatonicGrid: document.getElementById("diatonicGrid"),
-        smoothGrid: document.getElementById("smoothGrid"),
-        spiceGrid: document.getElementById("spiceGrid"),
+        suggestTitle: document.getElementById("suggestTitle"),
+        suggestDesc: document.getElementById("suggestDesc"),
+        suggestAddBtn: document.getElementById("suggestAddBtn"),
+        tabDiatonic: document.getElementById("tabDiatonic"),
+        tabSmooth: document.getElementById("tabSmooth"),
+        tabSpice: document.getElementById("tabSpice"),
+        suggestGrid: document.getElementById("suggestGrid"),
         currentChordName: document.getElementById("currentChordName"),
         currentRoman: document.getElementById("currentRoman"),
         currentNotes: document.getElementById("currentNotes"),
@@ -857,15 +869,70 @@
         return btn;
       }
 
+      function tabMeta(tab) {
+        if (tab === "smooth") {
+          return {
+            title: "Smooth Subs",
+            desc: "Relative/mediant-style substitutes that share 2+ notes.",
+            accent: "cyan",
+          };
+        }
+        if (tab === "spice") {
+          return {
+            title: "Harmonic Spice",
+            desc: "Secondary dominants, borrowed chords, and tritone substitutions.",
+            accent: "slate",
+          };
+        }
+        return {
+          title: "Diatonic",
+          desc: "The 7 primary chords of the scale.",
+          accent: "emerald",
+        };
+      }
+
+      function renderSuggestionTabs() {
+        const t = state.suggestTab;
+        const active = "bg-slate-900/60 text-slate-100";
+        const inactive = "text-slate-300 hover:bg-slate-900/40";
+        const btns = [
+          [el.tabDiatonic, "diatonic"],
+          [el.tabSmooth, "smooth"],
+          [el.tabSpice, "spice"],
+        ];
+        for (const [btn, key] of btns) {
+          if (!btn) continue;
+          btn.className =
+            "px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap " +
+            (t === key ? active : inactive);
+        }
+      }
+
+      function renderSuggestGrid() {
+        if (!el.suggestGrid) return;
+        el.suggestGrid.innerHTML = "";
+        if (!lastSuggestions) return;
+
+        const meta = tabMeta(state.suggestTab);
+        if (el.suggestTitle) el.suggestTitle.textContent = meta.title;
+        if (el.suggestDesc) el.suggestDesc.textContent = meta.desc;
+        renderSuggestionTabs();
+
+        const list =
+          state.suggestTab === "smooth"
+            ? lastSuggestions.smoothSubs
+            : state.suggestTab === "spice"
+            ? lastSuggestions.spice
+            : lastSuggestions.triads;
+
+        const accent =
+          state.suggestTab === "smooth" ? "cyan" : state.suggestTab === "spice" ? "slate" : "emerald";
+        for (const item of list) el.suggestGrid.appendChild(buttonForChord(item, { accent }));
+      }
+
       function renderGrids({ triads, smoothSubs, spice }) {
-        el.diatonicGrid.innerHTML = "";
-        for (const t of triads) el.diatonicGrid.appendChild(buttonForChord(t, { accent: "emerald" }));
-
-        el.smoothGrid.innerHTML = "";
-        for (const t of smoothSubs) el.smoothGrid.appendChild(buttonForChord(t, { accent: "cyan" }));
-
-        el.spiceGrid.innerHTML = "";
-        for (const s of spice) el.spiceGrid.appendChild(buttonForChord(s, { accent: "slate" }));
+        lastSuggestions = { triads, smoothSubs, spice };
+        renderSuggestGrid();
       }
 
       function renderCurrent() {
@@ -1291,6 +1358,16 @@
       });
 
       el.addToProgBtn?.addEventListener("click", () => addCurrentToProgression());
+      el.suggestAddBtn?.addEventListener("click", () => addCurrentToProgression());
+
+      function setSuggestTab(tab) {
+        state.suggestTab = tab;
+        renderSuggestGrid();
+      }
+
+      el.tabDiatonic?.addEventListener("click", () => setSuggestTab("diatonic"));
+      el.tabSmooth?.addEventListener("click", () => setSuggestTab("smooth"));
+      el.tabSpice?.addEventListener("click", () => setSuggestTab("spice"));
 
       el.clearProgBtn?.addEventListener("click", () => {
         progression = [];
