@@ -930,11 +930,11 @@
         if (!progression.length) return;
         if (!ensureAudio()) return;
         const now = Tone.now();
-        const step = 0.7;
+        const step = 1.15; // more space between chords
         progression.forEach((p, i) => {
           const voiced = spreadVoicing(p.notes || []);
           if (!voiced.length) return;
-          synth.triggerAttackRelease(voiced, 1.6, now + i * step, 0.85);
+          synth.triggerAttackRelease(voiced, 0.95, now + i * step, 0.85);
         });
       }
 
