@@ -1839,63 +1839,15 @@
       }
 
       (async () => {
-        // Restore state from shareable URL hash (best-effort).
-        const saved = decodeStateFromHash();
-        if (saved?.root) state.root = saved.root;
-        if (saved?.mode) state.mode = saved.mode;
-        if (saved?.ext) state.ext = saved.ext;
-        if (saved?.tab) state.suggestTab = saved.tab;
-        if (typeof saved?.bpm === "number") progressionBpm = saved.bpm;
-        if (typeof saved?.vl === "number") progressionVoiceLeading = !!saved.vl;
-        if (typeof saved?.loop === "number") progressionLoop = !!saved.loop;
-        if (typeof saved?.metro === "number") progressionMetronome = !!saved.metro;
-
-        initSelectors(); // should always populate the dropdown, even if libs fail
-        syncProgressionControls();
-        renderHistory();
-        renderProgression();
-        buildPiano(); // visual-only; no libs required
-
-        const tonal = await ensureTonal();
-        setStatus(
-          `Booted • Tonal=${!!window.Tonal} (from=${tonal.ok ? tonal.loadedFrom : "failed"}) • Tone=${!!window.Tone}`
-        );
-
-        if (!tonal.ok || !window.Tonal || !Tonal.Scale) {
-          showLibError(
-            tonal.ok
-              ? `Tonal loaded but Scale API missing. Tonal keys: ${Object.keys(window.Tonal).slice(0, 20).join(", ")}`
-              : `Tonal failed to load. ${tonal.errors?.[0] || ""}`
-          );
-          return;
-        }
-
-        try {
-          recomputeAndRender();
-          if (Array.isArray(saved?.prog) && saved.prog.length) {
-            progression = saved.prog
-              .map((name) => {
-                const notes = (Tonal.Chord.get(name)?.notes || []).map(normalizePc);
-                return { name, roman: "—", notes };
-              })
-              .filter((p) => p.name && p.notes?.length);
-            undoStack = [];
-            redoStack = [];
-            progressionCursor = null;
-            renderProgression();
-            syncUndoRedoButtons();
-          }
-        } catch (e) {
-          console.error(e);
-          showLibError(`Chord engine crashed: ${e?.message || String(e)}`);
-        }
-
-        if (!window.Tone) {
-          // Audio is optional; keep UI working.
-          el.audioBtn.textContent = "Audio unavailable (Tone.js blocked)";
-        }
+        // logic moved to app.js (module)
       })();
     </script>
+
+    <footer class="mt-6 mb-4 text-right text-xs text-slate-500">
+      v1.1.0 - Modular
+    </footer>
+
+    <script type="module" src="./app.js"></script>
   </body>
 </html>
 

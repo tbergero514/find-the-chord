@@ -1,8 +1,9 @@
 # Find The Chord
 
-A single-file, dark-mode web app for exploring chord choices in a key/mode, with playback and a piano visualizer.
+A modular, dark-mode web app for exploring chord choices in a key/mode, with playback and a piano visualizer.
 
-- **UI**: Tailwind CSS (CDN)
+- **UI**: Tailwind CSS (CDN) + custom CSS in `styles.css`
+- **Logic**: JavaScript in `app.js` (loaded as ES module)
 - **Theory engine**: Tonal (browser bundle via CDN + runtime fallback)
 - **Audio**: Tone.js PolySynth with a soft “electric piano-ish” patch
 
@@ -120,7 +121,7 @@ Tone.js and Tonal.js load separately. It’s possible your network blocks one CD
 If you want this hosted as a simple website:
 
 1. Create a GitHub repo (any name)
-2. Commit and push this folder (must include `index.html`)
+2. Commit and push this folder (include `index.html`, `app.js`, and `styles.css`)
 3. In GitHub: **Settings → Pages**
 4. Source: **Deploy from a branch**
 5. Branch: `main` (or `master`), folder: `/ (root)`
@@ -131,6 +132,8 @@ After a minute, your site will be available at your GitHub Pages URL.
 
 ## Project structure
 
-- `index.html`: the entire app (UI + logic + audio)
-- `README.md`: this guide
+- **index.html** — Markup, CDN links (Tailwind, Tonal, Tone.js), and `<script type="module" src="./app.js"></script>`. No build step.
+- **app.js** — All application logic (selectors, workbench, progression, suggestions, piano, history, audio). Loaded as an ES module.
+- **styles.css** — Custom styles (piano layout, mobile tweaks, etc.). Linked from `index.html`.
+- **README.md** — This guide.
 
