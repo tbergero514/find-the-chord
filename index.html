@@ -81,11 +81,19 @@
       }
       .piano-label {
         position: absolute;
-        left: 10px;
+        left: 0;
+        right: 0;
         bottom: 10px;
-        font-size: 11px;
+        padding: 0 6px;
+        text-align: center;
+        font-size: clamp(8px, 1.2vw, 11px);
+        line-height: 1;
         color: rgba(226, 232, 240, 0.65);
         letter-spacing: 0.02em;
+        pointer-events: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     </style>
   </head>
