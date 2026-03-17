@@ -165,6 +165,7 @@
                 <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
                   <li>Any chord you click becomes the <span class="font-medium text-slate-200">Current Chord</span>.</li>
                   <li>The <span class="font-medium text-slate-200">Piano</span> highlights its notes.</li>
+                  <li>Use <span class="font-medium text-slate-200">Color</span> to quickly switch the current chord between Triad / 7th / 9th.</li>
                   <li><span class="font-medium text-slate-200">History</span> auto-logs your last 5 clicks.</li>
                 </ul>
               </div>
@@ -186,6 +187,8 @@
                   <li><span class="font-medium text-slate-200">Play</span> plays the whole progression with separation between chords.</li>
                   <li>Use <span class="font-medium text-slate-200">BPM</span> to set playback speed, and <span class="font-medium text-slate-200">Voice-lead</span> to smooth transitions.</li>
                   <li><span class="font-medium text-slate-200">Copy</span> exports your progression as shareable text.</li>
+                  <li><span class="font-medium text-slate-200">Loop</span> repeats the progression, and <span class="font-medium text-slate-200">Metronome</span> adds a click track.</li>
+                  <li><span class="font-medium text-slate-200">Undo/Redo</span> lets you safely experiment with edits.</li>
                 </ul>
               </div>
             </div>
@@ -197,8 +200,15 @@
               </div>
             </div>
 
+            <div class="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4">
+              <div class="text-sm font-semibold text-cyan-100">Sharing tip</div>
+              <div class="mt-1 text-sm text-cyan-100/90">
+                Your key/mode/progression can be shared via the page URL (it’s encoded in the address bar after you make changes).
+              </div>
+            </div>
+
             <div class="mt-4 text-xs text-slate-500">
-              Close this window with <span class="text-slate-300">Esc</span>, the close buttons, or by tapping the backdrop.
+              Close this window with <span class="text-slate-300">Esc</span>, the bottom Close button, or by tapping the backdrop.
             </div>
 
             <div class="mt-4">
@@ -339,6 +349,15 @@
                 <div class="text-xs text-slate-400 mb-1">Notes</div>
                 <div id="currentNotes" class="flex flex-wrap gap-1.5"></div>
               </div>
+
+              <div class="mt-3 flex flex-wrap items-center gap-2">
+                <div class="text-xs text-slate-400">Color</div>
+                <div class="flex items-center rounded-xl border border-slate-800 bg-slate-950/35 p-1">
+                  <button id="colorTriad" class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap">Triad</button>
+                  <button id="color7" class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap">7th</button>
+                  <button id="color9" class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap">9th</button>
+                </div>
+              </div>
             </div>
 
             <div class="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
@@ -369,6 +388,26 @@
                     class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
                   >
                     Copy
+                  </button>
+                  <label class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
+                    <input id="loopToggle" type="checkbox" class="accent-cyan-300" />
+                    <span class="text-[11px] text-slate-200">Loop</span>
+                  </label>
+                  <label class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
+                    <input id="metroToggle" type="checkbox" class="accent-emerald-300" />
+                    <span class="text-[11px] text-slate-200">Metronome</span>
+                  </label>
+                  <button
+                    id="undoProgBtn"
+                    class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+                  >
+                    Undo
+                  </button>
+                  <button
+                    id="redoProgBtn"
+                    class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+                  >
+                    Redo
                   </button>
                   <button
                     id="playProgBtn"
@@ -519,9 +558,17 @@
       let progression = [];
       let progressionBpm = 90;
       let progressionVoiceLeading = true;
+      let progressionLoop = false;
+      let progressionMetronome = false;
+      let progressionCursor = null; // null means append
+      /** @type {Array<Array<{name: string; roman: string; notes: string[]}>>} */
+      let undoStack = [];
+      /** @type {Array<Array<{name: string; roman: string; notes: string[]}>>} */
+      let redoStack = [];
 
       let synth = null;
       let audioReady = false;
+      let metroSynth = null;
 
       const el = {
         rootSelect: document.getElementById("rootSelect"),
@@ -550,12 +597,19 @@
         bpmLabel: document.getElementById("bpmLabel"),
         vlToggle: document.getElementById("vlToggle"),
         copyProgBtn: document.getElementById("copyProgBtn"),
+        loopToggle: document.getElementById("loopToggle"),
+        metroToggle: document.getElementById("metroToggle"),
+        undoProgBtn: document.getElementById("undoProgBtn"),
+        redoProgBtn: document.getElementById("redoProgBtn"),
         playProgBtn: document.getElementById("playProgBtn"),
         clearProgBtn: document.getElementById("clearProgBtn"),
         historyStrip: document.getElementById("historyStrip"),
         clearHistoryBtn: document.getElementById("clearHistoryBtn"),
         playBtn: document.getElementById("playBtn"),
         audioBtn: document.getElementById("audioBtn"),
+        colorTriad: document.getElementById("colorTriad"),
+        color7: document.getElementById("color7"),
+        color9: document.getElementById("color9"),
         piano: document.getElementById("piano"),
       };
 
@@ -591,6 +645,51 @@
           },
           rawScaleNotes: scaleGetNotes,
         };
+      }
+
+      function encodeStateToHash() {
+        const obj = {
+          v: 1,
+          root: state.root,
+          mode: state.mode,
+          ext: state.ext,
+          tab: state.suggestTab,
+          bpm: progressionBpm,
+          vl: progressionVoiceLeading ? 1 : 0,
+          loop: progressionLoop ? 1 : 0,
+          metro: progressionMetronome ? 1 : 0,
+          prog: (progression || []).map((p) => p.name),
+        };
+        const json = JSON.stringify(obj);
+        // Base64url
+        const b64 = btoa(unescape(encodeURIComponent(json)))
+          .replaceAll("+", "-")
+          .replaceAll("/", "_")
+          .replaceAll("=", "");
+        return `#s=${b64}`;
+      }
+
+      function decodeStateFromHash() {
+        const h = location.hash || "";
+        const m = h.match(/#s=([A-Za-z0-9\-_]+)/);
+        if (!m) return null;
+        try {
+          const b64 = m[1].replaceAll("-", "+").replaceAll("_", "/");
+          const pad = "=".repeat((4 - (b64.length % 4)) % 4);
+          const json = decodeURIComponent(escape(atob(b64 + pad)));
+          return JSON.parse(json);
+        } catch {
+          return null;
+        }
+      }
+
+      let hashWriteTimer = null;
+      function persistToHash() {
+        if (hashWriteTimer) window.clearTimeout(hashWriteTimer);
+        hashWriteTimer = window.setTimeout(() => {
+          const next = encodeStateToHash();
+          if (location.hash !== next) history.replaceState(null, "", next);
+        }, 50);
       }
 
       function chip(text, tone = "slate") {
@@ -635,6 +734,14 @@
           out.push(item);
         }
         return out;
+      }
+
+      function safeClone(val) {
+        try {
+          return structuredClone(val);
+        } catch {
+          return JSON.parse(JSON.stringify(val));
+        }
       }
 
       function sameSet(a, b) {
@@ -969,6 +1076,9 @@
           const wrap = document.createElement("div");
           wrap.className =
             "flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-950/35 px-2 py-1.5 text-xs text-slate-200";
+          if (idx === progressionCursor) {
+            wrap.className += " ring-2 ring-cyan-500/25";
+          }
 
           const main = document.createElement("button");
           main.className = "px-2 py-1 rounded-lg hover:bg-slate-950/60 transition";
@@ -976,6 +1086,8 @@
           main.addEventListener("click", () => {
             setCurrentChord({ name: p.name, roman: p.roman, notes: p.notes });
             playCurrentChord();
+            progressionCursor = idx;
+            renderProgression();
           });
 
           const left = document.createElement("button");
@@ -988,12 +1100,14 @@
           left.addEventListener("click", (e) => {
             e.stopPropagation();
             if (idx === 0) return;
-            const next = progression.slice();
-            const tmp = next[idx - 1];
-            next[idx - 1] = next[idx];
-            next[idx] = tmp;
-            progression = next;
-            renderProgression();
+            commitProgressionChange((prev) => {
+              const next = prev.slice();
+              const tmp = next[idx - 1];
+              next[idx - 1] = next[idx];
+              next[idx] = tmp;
+              progressionCursor = idx - 1;
+              return next;
+            });
           });
 
           const right = document.createElement("button");
@@ -1006,12 +1120,14 @@
           right.addEventListener("click", (e) => {
             e.stopPropagation();
             if (idx === progression.length - 1) return;
-            const next = progression.slice();
-            const tmp = next[idx + 1];
-            next[idx + 1] = next[idx];
-            next[idx] = tmp;
-            progression = next;
-            renderProgression();
+            commitProgressionChange((prev) => {
+              const next = prev.slice();
+              const tmp = next[idx + 1];
+              next[idx + 1] = next[idx];
+              next[idx] = tmp;
+              progressionCursor = idx + 1;
+              return next;
+            });
           });
 
           const del = document.createElement("button");
@@ -1021,8 +1137,14 @@
           del.title = "Remove";
           del.addEventListener("click", (e) => {
             e.stopPropagation();
-            progression = progression.filter((_, i) => i !== idx);
-            renderProgression();
+            commitProgressionChange((prev) => {
+              const next = prev.filter((_, i) => i !== idx);
+              if (typeof progressionCursor === "number") {
+                if (progressionCursor === idx) progressionCursor = null;
+                else if (progressionCursor > idx) progressionCursor -= 1;
+              }
+              return next;
+            });
           });
 
           wrap.appendChild(left);
@@ -1068,15 +1190,83 @@
         };
         pushHistory(currentChord);
         renderCurrent();
+        renderColorButtons();
+      }
+
+      function renderColorButtons() {
+        const active = "bg-slate-900/60 text-slate-100";
+        const inactive = "text-slate-300 hover:bg-slate-900/40";
+        const ext = currentChord?.name?.includes("9") ? "9" : currentChord?.name?.includes("7") ? "7" : "triad";
+        const map = [
+          [el.colorTriad, "triad"],
+          [el.color7, "7"],
+          [el.color9, "9"],
+        ];
+        for (const [btn, key] of map) {
+          if (!btn) continue;
+          btn.className =
+            "px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap " +
+            (ext === key ? active : inactive);
+        }
+      }
+
+      function chordVariantName(baseName, target) {
+        const info = Tonal.Chord.get(baseName);
+        const root = info?.tonic || info?.root || Tonal.Note.pitchClass(baseName) || "";
+        const detected = baseName;
+        const q = qualityFromChordName(detected, "maj");
+        if (!root) return baseName;
+        if (target === "triad") {
+          return `${normalizePc(root)}${triadSuffix(q)}`;
+        }
+        if (target === "7") {
+          if (q === "maj") return `${normalizePc(root)}maj7`;
+          if (q === "min") return `${normalizePc(root)}m7`;
+          if (q === "dim") return `${normalizePc(root)}m7b5`;
+          return `${normalizePc(root)}7`;
+        }
+        if (target === "9") {
+          if (q === "maj") return `${normalizePc(root)}maj9`;
+          if (q === "min") return `${normalizePc(root)}m9`;
+          if (q === "dim") return `${normalizePc(root)}m9b5`;
+          return `${normalizePc(root)}9`;
+        }
+        return baseName;
+      }
+
+      function setCurrentChordVariant(target) {
+        if (!currentChord?.name) return;
+        const name = chordVariantName(currentChord.name, target);
+        const notes = (Tonal.Chord.get(name)?.notes || []).map(normalizePc);
+        setCurrentChord({ name, roman: currentChord.roman, notes, tag: currentChord.tag });
+        playCurrentChord();
       }
 
       function addCurrentToProgression() {
         if (!currentChord?.name) return;
-        progression = [
-          ...progression,
-          { name: currentChord.name, roman: currentChord.roman || "—", notes: currentChord.notes || [] },
-        ];
+        commitProgressionChange((prev) => {
+          const item = { name: currentChord.name, roman: currentChord.roman || "—", notes: currentChord.notes || [] };
+          if (typeof progressionCursor === "number" && progressionCursor >= 0 && progressionCursor <= prev.length) {
+            return [...prev.slice(0, progressionCursor + 1), item, ...prev.slice(progressionCursor + 1)];
+          }
+          return [...prev, item];
+        });
+      }
+
+      function commitProgressionChange(nextOrFn) {
+        undoStack.push(safeClone(progression));
+        redoStack = [];
+        progression = typeof nextOrFn === "function" ? nextOrFn(progression) : nextOrFn;
         renderProgression();
+        syncUndoRedoButtons();
+        persistToHash();
+      }
+
+      function syncUndoRedoButtons() {
+        if (el.undoProgBtn) el.undoProgBtn.disabled = undoStack.length === 0;
+        if (el.redoProgBtn) el.redoProgBtn.disabled = redoStack.length === 0;
+        if (el.undoProgBtn) el.undoProgBtn.style.opacity = undoStack.length === 0 ? "0.5" : "1";
+        if (el.redoProgBtn) el.redoProgBtn.style.opacity = redoStack.length === 0 ? "0.5" : "1";
       }
 
       function ensureAudio() {
@@ -1100,6 +1290,11 @@
             envelope: { attack: 0.02, decay: 0.25, sustain: 0.35, release: 1.25 },
             modulationEnvelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.9 },
           },
+        }).toDestination();
+
+        metroSynth = new Tone.MembraneSynth({
+          volume: -16,
+          envelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.01 },
         }).toDestination();
 
         audioReady = true;
@@ -1189,17 +1384,46 @@
       function playProgression() {
         if (!progression.length) return;
         if (!ensureAudio()) return;
-        const now = Tone.now();
         const beat = 60 / Math.max(40, Math.min(240, progressionBpm || 90));
         const step = beat * 2; // half-note feel
         const dur = Math.max(0.55, step * 0.75);
+
+        // Cancel any previously scheduled events (so repeated presses don't stack)
+        try {
+          Tone.Transport.stop();
+          Tone.Transport.cancel(0);
+        } catch {}
+
         let prev = null;
-        progression.forEach((p, i) => {
-          const voiced = progressionVoiceLeading ? voiceLedVoicing(p.notes || [], prev) : spreadVoicing(p.notes || []);
-          if (!voiced.length) return;
-          synth.triggerAttackRelease(voiced, dur, now + i * step, 0.85);
-          prev = voiced;
+        const items = progression.slice();
+        const loopLen = items.length * step;
+
+        Tone.Transport.bpm.value = progressionBpm || 90;
+        Tone.Transport.loop = !!progressionLoop;
+        Tone.Transport.loopStart = 0;
+        Tone.Transport.loopEnd = loopLen;
+
+        items.forEach((p, i) => {
+          const t = i * step;
+          Tone.Transport.schedule((time) => {
+            const voiced = progressionVoiceLeading
+              ? voiceLedVoicing(p.notes || [], prev)
+              : spreadVoicing(p.notes || []);
+            if (!voiced.length) return;
+            synth.triggerAttackRelease(voiced, dur, time, 0.85);
+            prev = voiced;
+          }, t);
+
+          if (progressionMetronome && metroSynth) {
+            // Tick on each beat; higher pitch on downbeat of the chord
+            Tone.Transport.schedule((time) => {
+              const isDown = i === 0;
+              metroSynth.triggerAttackRelease(isDown ? "C5" : "C4", "32n", time, 0.55);
+            }, t);
+          }
         });
+
+        Tone.Transport.start("+0.05");
       }
 
       function buildPiano() {
@@ -1320,16 +1544,19 @@
           state.root = el.rootSelect.value;
           currentChord = null;
           recomputeAndRender();
+          persistToHash();
         });
         el.scaleSelect.addEventListener("change", () => {
           state.mode = el.scaleSelect.value;
           currentChord = null;
           recomputeAndRender();
+          persistToHash();
         });
         el.extSelect?.addEventListener("change", () => {
           state.ext = el.extSelect.value;
           currentChord = null;
           recomputeAndRender();
+          persistToHash();
         });
       }
 
@@ -1363,6 +1590,7 @@
       function setSuggestTab(tab) {
         state.suggestTab = tab;
         renderSuggestGrid();
+        persistToHash();
       }
 
       el.tabDiatonic?.addEventListener("click", () => setSuggestTab("diatonic"));
@@ -1370,11 +1598,30 @@
       el.tabSpice?.addEventListener("click", () => setSuggestTab("spice"));
 
       el.clearProgBtn?.addEventListener("click", () => {
-        progression = [];
-        renderProgression();
+        commitProgressionChange([]);
       });
 
       el.playProgBtn?.addEventListener("click", () => playProgression());
+
+      el.undoProgBtn?.addEventListener("click", () => {
+        if (!undoStack.length) return;
+        redoStack.push(safeClone(progression));
+        progression = undoStack.pop();
+        progressionCursor = null;
+        renderProgression();
+        syncUndoRedoButtons();
+        persistToHash();
+      });
+
+      el.redoProgBtn?.addEventListener("click", () => {
+        if (!redoStack.length) return;
+        undoStack.push(safeClone(progression));
+        progression = redoStack.pop();
+        progressionCursor = null;
+        renderProgression();
+        syncUndoRedoButtons();
+        persistToHash();
+      });
 
       function progressionText() {
         if (!progression.length) return "";
@@ -1417,15 +1664,30 @@
         if (el.bpmRange) el.bpmRange.value = String(progressionBpm);
         if (el.bpmLabel) el.bpmLabel.textContent = String(progressionBpm);
         if (el.vlToggle) el.vlToggle.checked = !!progressionVoiceLeading;
+        if (el.loopToggle) el.loopToggle.checked = !!progressionLoop;
+        if (el.metroToggle) el.metroToggle.checked = !!progressionMetronome;
+        syncUndoRedoButtons();
       }
 
       el.bpmRange?.addEventListener("input", () => {
         progressionBpm = Number(el.bpmRange.value) || 90;
         if (el.bpmLabel) el.bpmLabel.textContent = String(progressionBpm);
+        persistToHash();
       });
 
       el.vlToggle?.addEventListener("change", () => {
         progressionVoiceLeading = !!el.vlToggle.checked;
+        persistToHash();
+      });
+
+      el.loopToggle?.addEventListener("change", () => {
+        progressionLoop = !!el.loopToggle.checked;
+        persistToHash();
+      });
+
+      el.metroToggle?.addEventListener("change", () => {
+        progressionMetronome = !!el.metroToggle.checked;
+        persistToHash();
       });
 
       el.diagBtn?.addEventListener("click", () => {
@@ -1435,6 +1697,9 @@
       });
 
       el.playBtn.addEventListener("click", () => playCurrentChord());
+      el.colorTriad?.addEventListener("click", () => setCurrentChordVariant("triad"));
+      el.color7?.addEventListener("click", () => setCurrentChordVariant("7"));
+      el.color9?.addEventListener("click", () => setCurrentChordVariant("9"));
 
       el.audioBtn.addEventListener("click", async () => {
         try {
@@ -1505,6 +1770,17 @@
       }
 
       (async () => {
+        // Restore state from shareable URL hash (best-effort).
+        const saved = decodeStateFromHash();
+        if (saved?.root) state.root = saved.root;
+        if (saved?.mode) state.mode = saved.mode;
+        if (saved?.ext) state.ext = saved.ext;
+        if (saved?.tab) state.suggestTab = saved.tab;
+        if (typeof saved?.bpm === "number") progressionBpm = saved.bpm;
+        if (typeof saved?.vl === "number") progressionVoiceLeading = !!saved.vl;
+        if (typeof saved?.loop === "number") progressionLoop = !!saved.loop;
+        if (typeof saved?.metro === "number") progressionMetronome = !!saved.metro;
+
         initSelectors(); // should always populate the dropdown, even if libs fail
         syncProgressionControls();
         renderHistory();
@@ -1527,6 +1803,19 @@
 
         try {
           recomputeAndRender();
+          if (Array.isArray(saved?.prog) && saved.prog.length) {
+            progression = saved.prog
+              .map((name) => {
+                const notes = (Tonal.Chord.get(name)?.notes || []).map(normalizePc);
+                return { name, roman: "—", notes };
+              })
+              .filter((p) => p.name && p.notes?.length);
+            undoStack = [];
+            redoStack = [];
+            progressionCursor = null;
+            renderProgression();
+            syncUndoRedoButtons();
+          }
         } catch (e) {
           console.error(e);
           showLibError(`Chord engine crashed: ${e?.message || String(e)}`);
