@@ -394,6 +394,15 @@
                   <div class="text-sm text-slate-300">User-controlled chord row</div>
                 </div>
 
+                <div class="flex items-center justify-end">
+                  <button
+                    id="playProgBtn"
+                    class="rounded-xl bg-cyan-500/10 border border-cyan-400/20 px-3 py-2 text-xs text-cyan-200 hover:bg-cyan-500/14 active:scale-[0.99] transition"
+                  >
+                    Play
+                  </button>
+                </div>
+
                 <div class="flex flex-wrap items-center justify-start gap-2">
                   <div class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
                     <div class="text-[11px] text-slate-400">BPM</div>
@@ -408,7 +417,7 @@
                     <div id="bpmLabel" class="w-10 text-right text-[11px] text-slate-200">90</div>
                   </div>
                   <label class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
-                    <input id="vlToggle" type="checkbox" checked class="accent-emerald-300" />
+                    <input id="vlToggle" type="checkbox" class="accent-emerald-300" />
                     <span class="text-[11px] text-slate-200">Voice-lead</span>
                   </label>
                   <button
@@ -438,12 +447,6 @@
                     Redo
                   </button>
                   <button
-                    id="playProgBtn"
-                    class="rounded-xl bg-cyan-500/10 border border-cyan-400/20 px-3 py-2 text-xs text-cyan-200 hover:bg-cyan-500/14 active:scale-[0.99] transition"
-                  >
-                    Play
-                  </button>
-                  <button
                     id="clearProgBtn"
                     class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
                   >
@@ -454,7 +457,7 @@
               <div id="progressionStrip" class="mt-3 flex flex-wrap gap-2"></div>
             </div>
 
-            <div class="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+            <div class="hidden sm:block rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
               <div class="flex items-center justify-between gap-3">
                 <div>
                   <div class="text-xs text-slate-400">History</div>
@@ -525,6 +528,23 @@
             class="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2"
           ></div>
         </div>
+
+        <!-- History (mobile) -->
+        <div class="sm:hidden rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <div class="text-xs text-slate-400">History</div>
+              <div class="text-sm text-slate-300">Last 5 chords you clicked</div>
+            </div>
+            <button
+              id="clearHistoryBtnMobile"
+              class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+            >
+              Clear
+            </button>
+          </div>
+          <div id="historyStripMobile" class="mt-3 flex flex-wrap gap-2"></div>
+        </div>
       </section>
 
       <div class="mt-6 flex items-center justify-end">
@@ -594,8 +614,8 @@
       /** @type {Array<{name: string; roman: string; notes: string[]}>} */
       let progression = [];
       let progressionBpm = 90;
-      let progressionVoiceLeading = true;
-      let progressionLoop = true;
+      let progressionVoiceLeading = false;
+      let progressionLoop = false;
       let progressionMetronome = false;
       let progressionCursor = null; // null means append
       /** @type {Array<Array<{name: string; roman: string; notes: string[]}>>} */
@@ -642,7 +662,9 @@
         playProgBtn: document.getElementById("playProgBtn"),
         clearProgBtn: document.getElementById("clearProgBtn"),
         historyStrip: document.getElementById("historyStrip"),
+        historyStripMobile: document.getElementById("historyStripMobile"),
         clearHistoryBtn: document.getElementById("clearHistoryBtn"),
+        clearHistoryBtnMobile: document.getElementById("clearHistoryBtnMobile"),
         playBtn: document.getElementById("playBtn"),
         audioBtn: document.getElementById("audioBtn"),
         colorTriad: document.getElementById("colorTriad"),
@@ -1194,28 +1216,34 @@
       }
 
       function renderHistory() {
-        el.historyStrip.innerHTML = "";
+        if (el.historyStrip) el.historyStrip.innerHTML = "";
+        if (el.historyStripMobile) el.historyStripMobile.innerHTML = "";
+
+        const targets = [el.historyStrip, el.historyStripMobile].filter(Boolean);
         if (!history.length) {
-          const empty = document.createElement("div");
-          empty.className = "text-sm text-slate-500";
-          empty.textContent = "No chords yet — click any suggestion to start a progression.";
-          el.historyStrip.appendChild(empty);
+          for (const target of targets) {
+            const empty = document.createElement("div");
+            empty.className = "text-sm text-slate-500";
+            empty.textContent = "No chords yet — click any suggestion to start a progression.";
+            target.appendChild(empty);
+          }
           return;
         }
         for (const h of history) {
-          const b = document.createElement("button");
-          b.className =
-            "rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/55 active:scale-[0.99] transition";
-          b.textContent = h.label;
-          b.addEventListener("click", () => {
-            // Recompute notes from name where possible (triads + 7ths)
-            const notes =
-              (Tonal.Chord.get(h.name)?.notes || []).map(normalizePc) ||
-              (currentChord?.notes || []);
-            setCurrentChord({ name: h.name, roman: h.roman, notes });
-            playCurrentChord();
-          });
-          el.historyStrip.appendChild(b);
+          for (const target of targets) {
+            const b = document.createElement("button");
+            b.className =
+              "rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/55 active:scale-[0.99] transition";
+            b.textContent = h.label;
+            b.addEventListener("click", () => {
+              const notes =
+                (Tonal.Chord.get(h.name)?.notes || []).map(normalizePc) ||
+                (currentChord?.notes || []);
+              setCurrentChord({ name: h.name, roman: h.roman, notes });
+              playCurrentChord();
+            });
+            target.appendChild(b);
+          }
         }
       }
 
@@ -1461,6 +1489,13 @@
           }
         });
 
+        if (!progressionLoop) {
+          // Auto-stop at the end so the button reverts to Play.
+          Tone.Transport.scheduleOnce(() => {
+            stopProgression();
+          }, loopLen);
+        }
+
         Tone.Transport.start("+0.05");
         progressionIsPlaying = true;
         if (el.playProgBtn) el.playProgBtn.textContent = "Stop";
@@ -1610,6 +1645,11 @@
       }
 
       el.clearHistoryBtn.addEventListener("click", () => {
+        history = [];
+        renderHistory();
+      });
+
+      el.clearHistoryBtnMobile?.addEventListener("click", () => {
         history = [];
         renderHistory();
       });
