@@ -558,7 +558,7 @@
       let progression = [];
       let progressionBpm = 90;
       let progressionVoiceLeading = true;
-      let progressionLoop = false;
+      let progressionLoop = true;
       let progressionMetronome = false;
       let progressionCursor = null; // null means append
       /** @type {Array<Array<{name: string; roman: string; notes: string[]}>>} */
@@ -569,6 +569,7 @@
       let synth = null;
       let audioReady = false;
       let metroSynth = null;
+      let progressionIsPlaying = false;
 
       const el = {
         rootSelect: document.getElementById("rootSelect"),
@@ -1424,6 +1425,17 @@
         });
 
         Tone.Transport.start("+0.05");
+        progressionIsPlaying = true;
+        if (el.playProgBtn) el.playProgBtn.textContent = "Stop";
+      }
+
+      function stopProgression() {
+        try {
+          Tone.Transport.stop();
+          Tone.Transport.cancel(0);
+        } catch {}
+        progressionIsPlaying = false;
+        if (el.playProgBtn) el.playProgBtn.textContent = "Play";
       }
 
       function buildPiano() {
@@ -1598,10 +1610,14 @@
       el.tabSpice?.addEventListener("click", () => setSuggestTab("spice"));
 
       el.clearProgBtn?.addEventListener("click", () => {
+        stopProgression();
         commitProgressionChange([]);
       });
 
-      el.playProgBtn?.addEventListener("click", () => playProgression());
+      el.playProgBtn?.addEventListener("click", () => {
+        if (progressionIsPlaying) stopProgression();
+        else playProgression();
+      });
 
       el.undoProgBtn?.addEventListener("click", () => {
         if (!undoStack.length) return;
