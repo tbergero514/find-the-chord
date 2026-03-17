@@ -133,6 +133,23 @@
         </div>
       </div>
 
+      <!-- Piano Visualizer -->
+      <section class="mb-6 rounded-2xl border border-slate-800 bg-slate-900/20 p-4" aria-label="Piano visualizer">
+        <div class="flex items-end justify-between gap-4">
+          <div>
+            <div class="text-xs text-slate-400">Visualizer</div>
+            <h2 class="mt-1 text-lg font-semibold">Piano</h2>
+          </div>
+          <div class="text-xs text-slate-500">
+            Highlights the notes in the current chord
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <div id="piano" class="piano"></div>
+        </div>
+      </section>
+
       <!-- Selector -->
       <section
         class="mb-6 rounded-2xl border border-slate-800 bg-slate-900/20 p-4"
@@ -190,12 +207,20 @@
               <div class="text-xs text-slate-400">Workbench</div>
               <h2 class="mt-1 text-lg font-semibold">Current Chord</h2>
             </div>
-            <button
-              id="playBtn"
-              class="rounded-xl bg-emerald-500/12 border border-emerald-400/20 px-3 py-2 text-sm text-emerald-200 hover:bg-emerald-500/16 active:scale-[0.99] transition"
-            >
-              Play
-            </button>
+            <div class="flex items-center gap-2">
+              <button
+                id="addToProgBtn"
+                class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+              >
+                Add
+              </button>
+              <button
+                id="playBtn"
+                class="rounded-xl bg-emerald-500/12 border border-emerald-400/20 px-3 py-2 text-sm text-emerald-200 hover:bg-emerald-500/16 active:scale-[0.99] transition"
+              >
+                Play
+              </button>
+            </div>
           </div>
 
           <div class="mt-4 grid grid-cols-1 gap-3">
@@ -222,6 +247,30 @@
                 <div class="text-xs text-slate-400 mb-1">Notes</div>
                 <div id="currentNotes" class="flex flex-wrap gap-1.5"></div>
               </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <div class="text-xs text-slate-400">Progression</div>
+                  <div class="text-sm text-slate-300">User-controlled chord row</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button
+                    id="playProgBtn"
+                    class="rounded-xl bg-cyan-500/10 border border-cyan-400/20 px-3 py-2 text-xs text-cyan-200 hover:bg-cyan-500/14 active:scale-[0.99] transition"
+                  >
+                    Play
+                  </button>
+                  <button
+                    id="clearProgBtn"
+                    class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+              <div id="progressionStrip" class="mt-3 flex flex-wrap gap-2"></div>
             </div>
 
             <div class="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
@@ -282,23 +331,6 @@
           <div id="spiceGrid" class="mt-4 grid grid-cols-2 gap-2"></div>
         </div>
       </section>
-
-      <!-- Piano Visualizer -->
-      <section class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/20 p-4" aria-label="Piano visualizer">
-        <div class="flex items-end justify-between gap-4">
-          <div>
-            <div class="text-xs text-slate-400">Visualizer</div>
-            <h2 class="mt-1 text-lg font-semibold">Piano</h2>
-          </div>
-          <div class="text-xs text-slate-500">
-            Highlights the notes in the current chord
-          </div>
-        </div>
-
-        <div class="mt-4">
-          <div id="piano" class="piano"></div>
-        </div>
-      </section>
     </div>
 
     <script>
@@ -329,6 +361,8 @@
       let currentChord = null;
       /** @type {Array<{label: string; name: string; roman: string}>} */
       let history = [];
+      /** @type {Array<{name: string; roman: string; notes: string[]}>} */
+      let progression = [];
 
       let synth = null;
       let audioReady = false;
@@ -345,6 +379,10 @@
         currentChordName: document.getElementById("currentChordName"),
         currentRoman: document.getElementById("currentRoman"),
         currentNotes: document.getElementById("currentNotes"),
+        addToProgBtn: document.getElementById("addToProgBtn"),
+        progressionStrip: document.getElementById("progressionStrip"),
+        playProgBtn: document.getElementById("playProgBtn"),
+        clearProgBtn: document.getElementById("clearProgBtn"),
         historyStrip: document.getElementById("historyStrip"),
         clearHistoryBtn: document.getElementById("clearHistoryBtn"),
         playBtn: document.getElementById("playBtn"),
@@ -640,6 +678,84 @@
         renderHistory();
       }
 
+      function renderProgression() {
+        el.progressionStrip.innerHTML = "";
+        if (!progression.length) {
+          const empty = document.createElement("div");
+          empty.className = "text-sm text-slate-500";
+          empty.textContent = "Click Add to build a progression you control.";
+          el.progressionStrip.appendChild(empty);
+          return;
+        }
+
+        progression.forEach((p, idx) => {
+          const wrap = document.createElement("div");
+          wrap.className =
+            "flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-950/35 px-2 py-1.5 text-xs text-slate-200";
+
+          const main = document.createElement("button");
+          main.className = "px-2 py-1 rounded-lg hover:bg-slate-950/60 transition";
+          main.textContent = `${p.name} • ${p.roman}`;
+          main.addEventListener("click", () => {
+            setCurrentChord({ name: p.name, roman: p.roman, notes: p.notes });
+            playCurrentChord();
+          });
+
+          const left = document.createElement("button");
+          left.className =
+            "w-7 h-7 grid place-items-center rounded-lg border border-slate-800 bg-slate-950/40 hover:bg-slate-950/70 transition";
+          left.textContent = "←";
+          left.title = "Move left";
+          left.disabled = idx === 0;
+          left.style.opacity = idx === 0 ? "0.4" : "1";
+          left.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (idx === 0) return;
+            const next = progression.slice();
+            const tmp = next[idx - 1];
+            next[idx - 1] = next[idx];
+            next[idx] = tmp;
+            progression = next;
+            renderProgression();
+          });
+
+          const right = document.createElement("button");
+          right.className =
+            "w-7 h-7 grid place-items-center rounded-lg border border-slate-800 bg-slate-950/40 hover:bg-slate-950/70 transition";
+          right.textContent = "→";
+          right.title = "Move right";
+          right.disabled = idx === progression.length - 1;
+          right.style.opacity = idx === progression.length - 1 ? "0.4" : "1";
+          right.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (idx === progression.length - 1) return;
+            const next = progression.slice();
+            const tmp = next[idx + 1];
+            next[idx + 1] = next[idx];
+            next[idx] = tmp;
+            progression = next;
+            renderProgression();
+          });
+
+          const del = document.createElement("button");
+          del.className =
+            "w-7 h-7 grid place-items-center rounded-lg border border-rose-500/25 bg-rose-500/10 hover:bg-rose-500/16 text-rose-100 transition";
+          del.textContent = "×";
+          del.title = "Remove";
+          del.addEventListener("click", (e) => {
+            e.stopPropagation();
+            progression = progression.filter((_, i) => i !== idx);
+            renderProgression();
+          });
+
+          wrap.appendChild(left);
+          wrap.appendChild(main);
+          wrap.appendChild(right);
+          wrap.appendChild(del);
+          el.progressionStrip.appendChild(wrap);
+        });
+      }
+
       function renderHistory() {
         el.historyStrip.innerHTML = "";
         if (!history.length) {
@@ -675,6 +791,15 @@
         };
         pushHistory(currentChord);
         renderCurrent();
+      }
+
+      function addCurrentToProgression() {
+        if (!currentChord?.name) return;
+        progression = [
+          ...progression,
+          { name: currentChord.name, roman: currentChord.roman || "—", notes: currentChord.notes || [] },
+        ];
+        renderProgression();
       }
 
       function ensureAudio() {
@@ -742,6 +867,18 @@
         const voiced = spreadVoicing(currentChord.notes);
         const now = Tone.now();
         synth.triggerAttackRelease(voiced, 1.6, now, 0.9);
+      }
+
+      function playProgression() {
+        if (!progression.length) return;
+        if (!ensureAudio()) return;
+        const now = Tone.now();
+        const step = 0.7;
+        progression.forEach((p, i) => {
+          const voiced = spreadVoicing(p.notes || []);
+          if (!voiced.length) return;
+          synth.triggerAttackRelease(voiced, 1.6, now + i * step, 0.85);
+        });
       }
 
       function buildPiano() {
@@ -867,6 +1004,15 @@
         renderHistory();
       });
 
+      el.addToProgBtn?.addEventListener("click", () => addCurrentToProgression());
+
+      el.clearProgBtn?.addEventListener("click", () => {
+        progression = [];
+        renderProgression();
+      });
+
+      el.playProgBtn?.addEventListener("click", () => playProgression());
+
       el.diagBtn?.addEventListener("click", () => {
         const snap = diagnosticsSnapshot();
         const pretty = JSON.stringify(snap, null, 2);
@@ -946,6 +1092,7 @@
       (async () => {
         initSelectors(); // should always populate the dropdown, even if libs fail
         renderHistory();
+        renderProgression();
         buildPiano(); // visual-only; no libs required
 
         const tonal = await ensureTonal();
