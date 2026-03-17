@@ -177,24 +177,24 @@
                 <option value="dorian">Dorian</option>
               </select>
             </label>
+
+            <label class="block col-span-2 sm:col-span-1">
+              <div class="text-xs text-slate-400 mb-1">Chord Type</div>
+              <select
+                id="extSelect"
+                class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-emerald-500/20"
+              >
+                <option value="triad">Triads</option>
+                <option value="7">7ths</option>
+                <option value="9">9ths</option>
+              </select>
+            </label>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
             <div class="text-xs text-slate-400">Scale Notes</div>
             <div id="scaleNotes" class="flex flex-wrap gap-1.5"></div>
           </div>
-        </div>
-        <div
-          id="statusLine"
-          class="mt-3 rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200"
-        ></div>
-        <div class="mt-2">
-          <button
-            id="diagBtn"
-            class="rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/55 active:scale-[0.99] transition"
-          >
-            Diagnostics
-          </button>
         </div>
       </section>
 
@@ -331,6 +331,19 @@
           <div id="spiceGrid" class="mt-4 grid grid-cols-2 gap-2"></div>
         </div>
       </section>
+
+      <div class="mt-6 flex items-center justify-end">
+        <button
+          id="diagBtn"
+          class="rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/55 active:scale-[0.99] transition"
+        >
+          Diagnostics
+        </button>
+      </div>
+      <div
+        id="statusLine"
+        class="mt-3 rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 whitespace-pre-wrap"
+      ></div>
     </div>
 
     <script>
@@ -355,6 +368,7 @@
       const state = {
         root: "C",
         mode: "major",
+        ext: "triad", // "triad" | "7" | "9"
       };
 
       /** @type {{name: string; notes: string[]; roman: string; tag?: string; flavor?: string} | null} */
@@ -370,6 +384,7 @@
       const el = {
         rootSelect: document.getElementById("rootSelect"),
         scaleSelect: document.getElementById("scaleSelect"),
+        extSelect: document.getElementById("extSelect"),
         scaleNotes: document.getElementById("scaleNotes"),
         statusLine: document.getElementById("statusLine"),
         diagBtn: document.getElementById("diagBtn"),
@@ -485,6 +500,64 @@
         return "";
       }
 
+      function qualityFromChordName(name, fallback = "maj") {
+        if (!name) return fallback;
+        const n = String(name);
+        if (n.includes("dim") || n.includes("o")) return "dim";
+        if (n.includes("m7b5")) return "dim";
+        // crude but effective: if it has "m" after root (e.g. Cm7, F#m9)
+        const m = n.match(/^[A-G](?:#|b)?m/);
+        if (m) return "min";
+        return "maj";
+      }
+
+      function chordNotesFromScaleDegree(scaleNotes, degreeIndex, ext) {
+        const picks =
+          ext === "9"
+            ? [0, 2, 4, 6, 1]
+            : ext === "7"
+            ? [0, 2, 4, 6]
+            : [0, 2, 4];
+        return picks.map((o) => scaleNotes[(degreeIndex + o) % 7]).map(normalizePc).filter(Boolean);
+      }
+
+      function detectChordName(rootPc, notes) {
+        try {
+          const detected = Tonal.Chord.detect(notes) || [];
+          const wantedPrefix = String(rootPc);
+          const exact = detected.find((n) => n.startsWith(wantedPrefix));
+          return exact || detected[0] || `${rootPc}`;
+        } catch {
+          return `${rootPc}`;
+        }
+      }
+
+      function diatonicChords(root, mode, ext) {
+        const scaleNotes = computeScaleNotes(root, mode);
+        const qualities = MODE_TRIAD_QUALITIES[mode];
+        const chords = [];
+        for (let i = 0; i < 7; i++) {
+          const notes = chordNotesFromScaleDegree(scaleNotes, i, ext);
+          const rootPc = scaleNotes[i];
+          const name =
+            ext === "triad"
+              ? `${rootPc}${triadSuffix(qualities[i])}`
+              : detectChordName(rootPc, notes);
+          const baseQuality = ext === "triad" ? qualities[i] : qualityFromChordName(name, qualities[i]);
+          const romanBase = romanForDegree(i, baseQuality);
+          const roman = ext === "triad" ? romanBase : `${romanBase}${ext === "7" ? "7" : "9"}`;
+          chords.push({
+            kind: "diatonic",
+            degree: i,
+            quality: baseQuality,
+            roman,
+            name,
+            notes,
+          });
+        }
+        return { scaleNotes, chords };
+      }
+
       function computeScaleNotes(root, mode) {
         const scaleName = `${root} ${mode}`;
         let notes = [];
@@ -503,25 +576,9 @@
       }
 
       function diatonicTriads(root, mode) {
-        const scaleNotes = computeScaleNotes(root, mode);
-        const qualities = MODE_TRIAD_QUALITIES[mode];
-        const triads = [];
-        for (let i = 0; i < 7; i++) {
-          const chordNotes = [scaleNotes[i], scaleNotes[(i + 2) % 7], scaleNotes[(i + 4) % 7]].map(
-            normalizePc
-          );
-          const q = qualities[i];
-          const name = `${scaleNotes[i]}${triadSuffix(q)}`;
-          triads.push({
-            kind: "diatonic",
-            degree: i,
-            quality: q,
-            roman: romanForDegree(i, q),
-            name,
-            notes: chordNotes,
-          });
-        }
-        return { scaleNotes, triads };
+        // Backward compatibility: keep older callers working.
+        const { scaleNotes, chords } = diatonicChords(root, mode, "triad");
+        return { scaleNotes, triads: chords };
       }
 
       function buildSmoothSubs(triads) {
@@ -538,13 +595,13 @@
       }
 
       function buildBorrowedChords(root, mode) {
-        // Borrowed from parallel major/minor (triads only)
+        // Borrowed from parallel major/minor (match current chord type where possible)
         const parallelMode = mode === "minor" || mode === "dorian" ? "major" : "minor";
-        const { triads: parallelTriads } = diatonicTriads(root, parallelMode);
-        const { triads: currentTriads } = diatonicTriads(root, mode);
-        const currentNames = new Set(currentTriads.map((t) => t.name));
+        const { chords: parallelChords } = diatonicChords(root, parallelMode, state.ext);
+        const { chords: currentChords } = diatonicChords(root, mode, state.ext);
+        const currentNames = new Set(currentChords.map((t) => t.name));
 
-        const borrowed = parallelTriads
+        const borrowed = parallelChords
           .filter((t) => !currentNames.has(t.name))
           .map((t) => ({
             kind: "borrowed",
@@ -559,11 +616,11 @@
       }
 
       function buildSecondaryDominants(root, mode) {
-        const { triads } = diatonicTriads(root, mode);
+        const { chords } = diatonicChords(root, mode, state.ext);
         // V of ii..vii (exclude I target)
         const out = [];
         for (let targetDegree = 1; targetDegree < 7; targetDegree++) {
-          const target = triads[targetDegree];
+          const target = chords[targetDegree];
           const domRoot = normalizePc(Tonal.Note.transpose(target.notes[0], "5P"));
           const name = `${domRoot}7`;
           const notes = (Tonal.Chord.get(name)?.notes || []).map(normalizePc);
@@ -952,28 +1009,28 @@
       }
 
       function recomputeAndRender() {
-        const { scaleNotes, triads } = diatonicTriads(state.root, state.mode);
+        const { scaleNotes, chords } = diatonicChords(state.root, state.mode, state.ext);
         setStatus(
-          `Key: ${state.root} ${state.mode} • scaleNotes=${scaleNotes?.length || 0} • triads=${triads?.length || 0}`
+          `Key: ${state.root} ${state.mode} • chordType=${state.ext} • scaleNotes=${scaleNotes?.length || 0} • diatonic=${chords?.length || 0}`
         );
 
-        if (!scaleNotes?.length || !triads?.length) {
-          throw new Error(`No scale/triads returned for "${state.root} ${state.mode}".`);
+        if (!scaleNotes?.length || !chords?.length) {
+          throw new Error(`No scale/chords returned for "${state.root} ${state.mode}".`);
         }
 
         renderScaleNotes(scaleNotes);
 
-        const smoothSubs = buildSmoothSubs(triads);
+        const smoothSubs = buildSmoothSubs(chords);
 
         const secDoms = buildSecondaryDominants(state.root, state.mode);
         const tritones = buildTritoneSubs(secDoms);
         const borrowed = buildBorrowedChords(state.root, state.mode);
 
         const spice = uniqBy([...secDoms, ...borrowed, ...tritones], (x) => `${x.kind}:${x.name}:${x.roman}`);
-        renderGrids({ triads, smoothSubs, spice });
+        renderGrids({ triads: chords, smoothSubs, spice });
 
         // Default chord if none selected
-        if (!currentChord) setCurrentChord(triads[0]);
+        if (!currentChord) setCurrentChord(chords[0]);
       }
 
       function initSelectors() {
@@ -986,6 +1043,7 @@
         }
         el.rootSelect.value = state.root;
         el.scaleSelect.value = state.mode;
+        if (el.extSelect) el.extSelect.value = state.ext;
 
         el.rootSelect.addEventListener("change", () => {
           state.root = el.rootSelect.value;
@@ -994,6 +1052,11 @@
         });
         el.scaleSelect.addEventListener("change", () => {
           state.mode = el.scaleSelect.value;
+          currentChord = null;
+          recomputeAndRender();
+        });
+        el.extSelect?.addEventListener("change", () => {
+          state.ext = el.extSelect.value;
           currentChord = null;
           recomputeAndRender();
         });
