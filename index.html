@@ -109,6 +109,12 @@
 
           <div class="flex items-center gap-3">
             <button
+              id="howBtn"
+              class="rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200 hover:bg-slate-900/70 active:scale-[0.99] transition"
+            >
+              How to use
+            </button>
+            <button
               id="audioBtn"
               class="rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200 hover:bg-slate-900/70 active:scale-[0.99] transition"
             >
@@ -120,6 +126,87 @@
           </div>
         </div>
       </header>
+
+      <!-- How-to modal -->
+      <div
+        id="howModal"
+        class="fixed inset-0 z-50 hidden"
+        aria-hidden="true"
+      >
+        <div id="howBackdrop" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"></div>
+        <div class="relative mx-auto flex h-full max-w-3xl items-center justify-center px-4 py-8">
+          <div
+            class="w-full rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="howTitle"
+          >
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="text-xs text-slate-400">Quick guide</div>
+                <h2 id="howTitle" class="mt-1 text-xl font-semibold">
+                  How to use Find The Chord
+                </h2>
+              </div>
+              <button
+                id="howCloseBtn"
+                class="rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200 hover:bg-slate-900/70 active:scale-[0.99] transition"
+              >
+                Close
+              </button>
+            </div>
+
+            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
+                <div class="text-sm font-semibold">1) Pick your key + mode</div>
+                <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
+                  <li><span class="font-medium text-slate-200">Root Note</span> sets the key center.</li>
+                  <li><span class="font-medium text-slate-200">Scale</span> picks the mode (Major/Minor/Mixolydian/Dorian).</li>
+                  <li><span class="font-medium text-slate-200">Chord Type</span> switches Triads / 7ths / 9ths.</li>
+                </ul>
+              </div>
+
+              <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
+                <div class="text-sm font-semibold">2) Click chords to explore</div>
+                <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
+                  <li>Any chord you click becomes the <span class="font-medium text-slate-200">Current Chord</span>.</li>
+                  <li>The <span class="font-medium text-slate-200">Piano</span> highlights its notes.</li>
+                  <li><span class="font-medium text-slate-200">History</span> auto-logs your last 5 clicks.</li>
+                </ul>
+              </div>
+
+              <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
+                <div class="text-sm font-semibold">3) Build a progression you control</div>
+                <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
+                  <li>Use <span class="font-medium text-slate-200">Add</span> to append the current chord.</li>
+                  <li>Reorder with <span class="font-medium text-slate-200">← / →</span>, remove with <span class="font-medium text-slate-200">×</span>.</li>
+                  <li><span class="font-medium text-slate-200">Play</span> plays the whole progression with separation between chords.</li>
+                </ul>
+              </div>
+
+              <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
+                <div class="text-sm font-semibold">4) Understand the suggestion grids</div>
+                <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
+                  <li><span class="font-medium text-slate-200">Diatonic</span>: the 7 chords inside the scale.</li>
+                  <li><span class="font-medium text-slate-200">Smooth Subs</span>: diatonic substitutes sharing 2+ notes.</li>
+                  <li><span class="font-medium text-slate-200">Harmonic Spice</span>: secondary dominants, borrowed chords, tritone subs.</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+              <div class="text-sm font-semibold text-emerald-100">Audio tip</div>
+              <div class="mt-1 text-sm text-emerald-100/90">
+                If you don’t hear sound, click <span class="font-medium">Enable Audio</span>. Browsers require a user gesture to start audio.
+              </div>
+            </div>
+
+            <div class="mt-4 text-xs text-slate-500">
+              Close this window with <span class="text-slate-300">Esc</span> or by clicking the backdrop.
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div
         id="libError"
@@ -347,7 +434,25 @@
     </div>
 
     <script>
-      const NOTE_OPTIONS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+      const NOTE_OPTIONS = [
+        "C",
+        "C#",
+        "Db",
+        "D",
+        "D#",
+        "Eb",
+        "E",
+        "F",
+        "F#",
+        "Gb",
+        "G",
+        "G#",
+        "Ab",
+        "A",
+        "A#",
+        "Bb",
+        "B",
+      ];
       const SCALE_LABELS = {
         major: "Major",
         minor: "Minor",
@@ -388,6 +493,10 @@
         scaleNotes: document.getElementById("scaleNotes"),
         statusLine: document.getElementById("statusLine"),
         diagBtn: document.getElementById("diagBtn"),
+        howBtn: document.getElementById("howBtn"),
+        howModal: document.getElementById("howModal"),
+        howBackdrop: document.getElementById("howBackdrop"),
+        howCloseBtn: document.getElementById("howCloseBtn"),
         diatonicGrid: document.getElementById("diatonicGrid"),
         smoothGrid: document.getElementById("smoothGrid"),
         spiceGrid: document.getElementById("spiceGrid"),
@@ -455,9 +564,20 @@
       function normalizePc(note) {
         if (!note) return "";
         const pc = Tonal.Note.pitchClass(note) || "";
-        // Prefer sharps to match UI note options (Tonal's enharmonic() is 1-arg in common builds)
-        if (pc.includes("b")) return Tonal.Note.enharmonic(pc) || pc;
+        const preferFlats = String(state.root || "").includes("b");
+        // Tonal.Note.enharmonic(pc) toggles common #/b spellings (e.g. C# <-> Db)
+        if (preferFlats && pc.includes("#")) return Tonal.Note.enharmonic(pc) || pc;
+        if (!preferFlats && pc.includes("b")) return Tonal.Note.enharmonic(pc) || pc;
         return pc;
+      }
+
+      function chromaOf(note) {
+        try {
+          const c = Tonal.Note.chroma(note);
+          return typeof c === "number" ? c : null;
+        } catch {
+          return null;
+        }
       }
 
       function uniqBy(arr, keyFn) {
@@ -960,6 +1080,7 @@
           const key = document.createElement("div");
           key.className = "piano-key piano-white";
           key.dataset.pc = k.pc;
+          key.dataset.chroma = String(chromaOf(k.pc) ?? "");
           key.title = k.label;
           const lab = document.createElement("div");
           lab.className = "piano-label";
@@ -988,6 +1109,7 @@
             const blackKey = document.createElement("div");
             blackKey.className = "piano-key piano-black";
             blackKey.dataset.pc = normalizePc(black);
+            blackKey.dataset.chroma = String(chromaOf(blackKey.dataset.pc) ?? "");
             blackKey.title = `${black}${octave}`;
 
             // Position: start at left of its white cell, then shift right.
@@ -1000,10 +1122,15 @@
       }
 
       function renderPianoHighlights(pitchClasses) {
-        const pcs = new Set((pitchClasses || []).map(normalizePc));
-        const keys = el.piano.querySelectorAll("[data-pc]");
+        const chromas = new Set(
+          (pitchClasses || [])
+            .map((n) => chromaOf(n))
+            .filter((c) => typeof c === "number")
+            .map((c) => String(c))
+        );
+        const keys = el.piano.querySelectorAll("[data-chroma]");
         for (const k of keys) {
-          const on = pcs.has(k.dataset.pc);
+          const on = chromas.has(String(k.dataset.chroma || ""));
           k.classList.toggle("is-on", on);
         }
       }
@@ -1065,6 +1192,25 @@
       el.clearHistoryBtn.addEventListener("click", () => {
         history = [];
         renderHistory();
+      });
+
+      function openHow() {
+        if (!el.howModal) return;
+        el.howModal.classList.remove("hidden");
+        el.howModal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeHow() {
+        if (!el.howModal) return;
+        el.howModal.classList.add("hidden");
+        el.howModal.setAttribute("aria-hidden", "true");
+      }
+
+      el.howBtn?.addEventListener("click", () => openHow());
+      el.howCloseBtn?.addEventListener("click", () => closeHow());
+      el.howBackdrop?.addEventListener("click", () => closeHow());
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeHow();
       });
 
       el.addToProgBtn?.addEventListener("click", () => addCurrentToProgression());
