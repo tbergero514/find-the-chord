@@ -776,9 +776,12 @@ function ensureAudio() {
 
 async function initAudio() {
   if (audioReady) return;
-  await Tone.start();
 
-  // Electric Piano-ish: Poly FM synth, soft attack + gentle release
+  // iOS Safari: resume() must run synchronously in the user gesture. Do not await
+  // before creating synths or we leave the gesture and audio can stay blocked on some devices.
+  const startPromise = Tone.start();
+
+  // Create synths in the same synchronous turn as the click so the context is used in the gesture.
   synth = new Tone.PolySynth(Tone.FMSynth, {
     maxPolyphony: 8,
     volume: -10,
@@ -796,6 +799,8 @@ async function initAudio() {
     volume: -16,
     envelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.01 },
   }).toDestination();
+
+  await startPromise;
 
   audioReady = true;
   el.audioBtn.textContent = "Audio Enabled";
@@ -1223,14 +1228,17 @@ el.colorTriad?.addEventListener("click", () => setCurrentChordVariant("triad"));
 el.color7?.addEventListener("click", () => setCurrentChordVariant("7"));
 el.color9?.addEventListener("click", () => setCurrentChordVariant("9"));
 
-el.audioBtn.addEventListener("click", async () => {
+async function handleEnableAudio() {
   try {
     await initAudio();
   } catch (e) {
     console.error(e);
-    el.audioBtn.textContent = "Audio blocked (click again)";
+    el.audioBtn.textContent = "Audio blocked (tap again)";
   }
-});
+}
+// Click and pointerdown so iOS gets unlock in the same gesture as the tap (click can fire late)
+el.audioBtn.addEventListener("click", handleEnableAudio);
+el.audioBtn.addEventListener("pointerdown", handleEnableAudio);
 
 // Also unlock audio on first chord click (best effort)
 document.addEventListener("pointerdown", async () => {

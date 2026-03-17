@@ -114,6 +114,18 @@ Try:
 
 Tone.js and Tonal.js load separately. It’s possible your network blocks one CDN but not the other.
 
+### No sound on iPhone / iPad (Safari), even after “Enable Audio”
+
+Some iOS devices or versions are stricter about when the browser allows Web Audio to start. The app is written so that audio is unlocked in the same touch as the button (which helps on many devices). If it still doesn’t work:
+
+- **Tap “Enable Audio” once**, then try playing a chord. Avoid tapping elsewhere first.
+- Turn **Low Power Mode** off and try again.
+- Try with the device **ringer/side switch set to sound on** (not silent).
+- Close other tabs and apps, then reload the page and tap “Enable Audio” again.
+- If you recently had no internet or the tab in the background, do a full reload and tap “Enable Audio” on the freshly loaded page.
+
+If it works on one iPhone but not another, it’s often due to different iOS versions or Low Power Mode. There’s no extra install required; it’s all browser-based.
+
 ---
 
 ## Publish on GitHub Pages
