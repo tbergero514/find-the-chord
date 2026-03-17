@@ -65,6 +65,7 @@ let synth = null;
 let audioReady = false;
 let metroSynth = null;
 let progressionIsPlaying = false;
+let welcomeClosed = false;
 
 const el = {
   rootSelect: document.getElementById("rootSelect"),
@@ -76,6 +77,13 @@ const el = {
   howBtn: document.getElementById("howBtn"),
   howModal: document.getElementById("howModal"),
   howBackdrop: document.getElementById("howBackdrop"),
+  welcomeModal: document.getElementById("welcomeModal"),
+  welcomeEnableBtn: document.getElementById("welcomeEnableBtn"),
+  welcomeLaterBtn: document.getElementById("welcomeLaterBtn"),
+  hintPopup: document.getElementById("hintPopup"),
+  hintBackdrop: document.getElementById("hintBackdrop"),
+  hintCard: document.getElementById("hintCard"),
+  hintArrow: document.getElementById("hintArrow"),
   howCloseBottomBtn: document.getElementById("howCloseBottomBtn"),
   suggestTitle: document.getElementById("suggestTitle"),
   suggestDesc: document.getElementById("suggestDesc"),
@@ -1090,6 +1098,7 @@ el.clearHistoryBtn.addEventListener("click", () => {
 
 function openHow() {
   if (!el.howModal) return;
+  closeHint();
   el.howModal.classList.remove("hidden");
   el.howModal.setAttribute("aria-hidden", "false");
 }
@@ -1100,12 +1109,54 @@ function closeHow() {
   el.howModal.setAttribute("aria-hidden", "true");
 }
 
+function closeWelcome() {
+  if (!el.welcomeModal) return;
+  el.welcomeModal.classList.add("hidden");
+  el.welcomeModal.setAttribute("aria-hidden", "true");
+  welcomeClosed = true;
+  // Show hint pointing to How It Works after a short delay
+  setTimeout(openHint, 350);
+}
+
+function openHint() {
+  if (!el.hintPopup || !el.hintCard || !el.howBtn || !el.hintArrow) return;
+  const btn = el.howBtn.getBoundingClientRect();
+  const card = el.hintCard;
+  const arrow = el.hintArrow;
+  const cardWidth = 220;
+  const gap = 8;
+  const arrowHalf = 8; // arrow total width 16px (border-l-8 + border-r-8)
+  // Center card under button, clamped to viewport
+  let left = btn.left + (btn.width / 2) - (cardWidth / 2);
+  left = Math.max(12, Math.min(left, window.innerWidth - cardWidth - 12));
+  const cardLeft = left;
+  el.hintPopup.classList.remove("hidden");
+  el.hintPopup.setAttribute("aria-hidden", "false");
+  card.style.left = `${cardLeft}px`;
+  card.style.top = `${btn.bottom + gap}px`;
+  card.style.width = `${cardWidth}px`;
+  // Point arrow at button center (for both large and small screens)
+  const btnCenterX = btn.left + btn.width / 2;
+  const arrowLeft = btnCenterX - cardLeft - arrowHalf;
+  arrow.style.left = `${Math.round(arrowLeft)}px`;
+}
+
+function closeHint() {
+  if (!el.hintPopup) return;
+  el.hintPopup.classList.add("hidden");
+  el.hintPopup.setAttribute("aria-hidden", "true");
+}
+
 el.howBtn?.addEventListener("click", () => openHow());
 el.howCloseBottomBtn?.addEventListener("click", () => closeHow());
 el.howBackdrop?.addEventListener("click", () => closeHow());
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeHow();
+  if (e.key === "Escape") {
+    closeHow();
+    closeHint();
+  }
 });
+el.hintBackdrop?.addEventListener("click", () => closeHint());
 
 el.addToProgBtn?.addEventListener("click", () => addCurrentToProgression());
 el.suggestAddBtn?.addEventListener("click", () => addCurrentToProgression());
@@ -1240,9 +1291,19 @@ async function handleEnableAudio() {
 el.audioBtn.addEventListener("click", handleEnableAudio);
 el.audioBtn.addEventListener("pointerdown", handleEnableAudio);
 
-// Also unlock audio on first chord click (best effort)
+// Welcome popup: Enable Audio enables and closes; Maybe Later just closes
+async function welcomeEnableAndClose() {
+  await handleEnableAudio();
+  closeWelcome();
+}
+el.welcomeEnableBtn?.addEventListener("click", welcomeEnableAndClose);
+el.welcomeEnableBtn?.addEventListener("pointerdown", welcomeEnableAndClose);
+el.welcomeLaterBtn?.addEventListener("click", () => closeWelcome());
+el.welcomeLaterBtn?.addEventListener("pointerdown", () => closeWelcome());
+
+// Unlock audio on first tap elsewhere only after welcome was dismissed (so welcome = first action)
 document.addEventListener("pointerdown", async () => {
-  if (!audioReady) {
+  if (!audioReady && welcomeClosed) {
     try {
       await initAudio();
     } catch {

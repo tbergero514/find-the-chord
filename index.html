@@ -139,7 +139,7 @@
               id="howBtn"
               class="rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200 hover:bg-slate-900/70 active:scale-[0.99] transition"
             >
-              How to use
+              How It Works
             </button>
             <button
               id="audioBtn"
@@ -172,7 +172,7 @@
               <div>
                 <div class="text-xs text-slate-400">Quick guide</div>
                 <h2 id="howTitle" class="mt-1 text-xl font-semibold">
-                  How to use Find The Chord
+                  How It Works
                 </h2>
               </div>
             </div>
@@ -247,6 +247,61 @@
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Welcome popup (shown on first load; dismiss by clicking Enable Audio) -->
+      <div
+        id="welcomeModal"
+        class="fixed inset-0 z-[60] flex items-center justify-center px-4"
+        aria-hidden="false"
+        aria-modal="true"
+        role="dialog"
+        aria-labelledby="welcomeTitle"
+      >
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" aria-hidden="true"></div>
+        <div
+          class="relative z-10 w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+        >
+          <h2 id="welcomeTitle" class="text-xl font-semibold text-slate-100">
+            Welcome to Find The Chord!
+          </h2>
+          <p class="mt-3 text-slate-300">
+            To get started, click <span class="font-medium text-emerald-300">Enable Audio</span> so you can hear chords and progressions.
+          </p>
+          <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:gap-3">
+            <button
+              id="welcomeEnableBtn"
+              type="button"
+              class="flex-1 rounded-xl bg-emerald-500/20 border border-emerald-400/30 px-4 py-3 text-base font-medium text-emerald-200 hover:bg-emerald-500/30 active:scale-[0.99] transition"
+            >
+              Enable Audio
+            </button>
+            <button
+              id="welcomeLaterBtn"
+              type="button"
+              class="flex-1 rounded-xl border border-slate-600 bg-slate-800/40 px-4 py-3 text-base font-medium text-slate-300 hover:bg-slate-800/70 active:scale-[0.99] transition"
+            >
+              Maybe Later
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hint popup: points to How It Works after welcome is closed (Esc or backdrop to dismiss) -->
+      <div
+        id="hintPopup"
+        class="fixed inset-0 z-[55] hidden"
+        aria-hidden="true"
+      >
+        <div id="hintBackdrop" class="absolute inset-0 bg-slate-950/50 cursor-pointer" tabindex="-1"></div>
+        <div
+          id="hintCard"
+          class="absolute z-10 max-w-[220px] rounded-xl border border-slate-600 bg-slate-900 px-4 py-3 text-sm text-slate-200 shadow-xl"
+          role="tooltip"
+        >
+          <span class="pointer-events-none">Click here to learn more.</span>
+          <div id="hintArrow" class="absolute -top-2 h-0 w-0 border-l-[8px] border-r-[8px] border-b-[8px] border-l-transparent border-r-transparent border-b-slate-900" aria-hidden="true"></div>
         </div>
       </div>
 
@@ -339,13 +394,13 @@
             <div class="flex items-center gap-2">
               <button
                 id="addToProgBtn"
-                class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+                class="rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3 py-2 text-sm font-medium text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:bg-emerald-500/22 hover:border-emerald-400/40 active:scale-[0.99] transition"
               >
                 Add
               </button>
               <button
                 id="playBtn"
-                class="rounded-xl bg-emerald-500/12 border border-emerald-400/20 px-3 py-2 text-sm text-emerald-200 hover:bg-emerald-500/16 active:scale-[0.99] transition"
+                class="rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3 py-2 text-sm font-medium text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:bg-emerald-500/22 hover:border-emerald-400/40 active:scale-[0.99] transition"
               >
                 Play
               </button>
@@ -397,7 +452,7 @@
                 <div class="flex items-center justify-end">
                   <button
                     id="playProgBtn"
-                    class="rounded-xl bg-cyan-500/10 border border-cyan-400/20 px-3 py-2 text-xs text-cyan-200 hover:bg-cyan-500/14 active:scale-[0.99] transition"
+                    class="rounded-xl border border-cyan-400/30 bg-cyan-500/15 px-3 py-2 text-xs font-medium text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.12)] hover:bg-cyan-500/22 hover:border-cyan-400/40 active:scale-[0.99] transition"
                   >
                     Play
                   </button>
@@ -481,7 +536,7 @@
             <div class="flex flex-col items-end gap-2 shrink-0">
               <button
                 id="suggestAddBtn"
-                class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+                class="rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3 py-2 text-sm font-medium text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:bg-emerald-500/22 hover:border-emerald-400/40 active:scale-[0.99] transition"
               >
                 Add
               </button>
