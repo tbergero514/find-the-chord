@@ -2,7 +2,7 @@
 
 A modular, dark-mode web app for exploring chord choices in a key/mode, with playback and a piano visualizer.
 
-- **UI**: Tailwind CSS (CDN) + custom CSS in `styles.css`
+- **UI**: Tailwind CSS (CDN) + `styles.css` (dark theme with layered slate surfaces, card shadows, and a subtle page gradient for contrast)
 - **Logic**: JavaScript in `app.js` (loaded as ES module)
 - **Theory engine**: Tonal (browser bundle via CDN + runtime fallback)
 - **Audio**: Tone.js PolySynth with a soft “electric piano-ish” patch
@@ -50,10 +50,10 @@ The **Scale Notes** row shows the active scale tones.
 
 ### Explore (single card)
 
-One card with **current chord + Color** on top and the **chord suggestion grid** below (same border, divided by a subtle line).
+One card with **current chord**, **Color**, and **Voicing** in the upper area, then **Chord suggestions** (same border, divided by subtle lines).
 
 - **Add to Progression**: adds the **current chord** to your progression.
-- **Chord suggestions**: tabbed grids (**Diatonic**, **Smooth Subs**, **Harmonic Spice**).
+- **Chord suggestions**: under that heading, tabs (**Diatonic**, **Smooth Subs**, **Harmonic Spice**), then the dynamic title/description for the active type, then the chord grid.
 
 ### Progression (separate card)
 

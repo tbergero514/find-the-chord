@@ -1,5 +1,18 @@
 :root {
   color-scheme: dark;
+  /* Slightly lifted surfaces vs flat slate-950 */
+  --app-bg-top: #0f172a;
+  --app-bg-bottom: #020617;
+  --card-bg: rgba(30, 41, 59, 0.72);
+  --card-border: rgba(100, 116, 139, 0.45);
+  --card-ring: rgba(148, 163, 184, 0.12);
+  --card-shadow: 0 10px 40px rgba(0, 0, 0, 0.38);
+}
+
+/* Page wash — extra depth behind Tailwind body classes */
+body.app-theme {
+  background: linear-gradient(165deg, var(--app-bg-top) 0%, var(--app-bg-bottom) 55%, #020617 100%);
+  background-attachment: fixed;
 }
 
 /* Piano */
@@ -18,11 +31,11 @@
 }
 .piano-key {
   border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.22);
   transition: transform 80ms ease, box-shadow 120ms ease, background-color 120ms ease;
 }
 .piano-white {
-  background: rgba(241, 245, 249, 0.06);
+  background: rgba(241, 245, 249, 0.09);
   position: relative;
 }
 .piano-black {
@@ -30,19 +43,19 @@
   top: 10px;
   height: 86px;
   width: calc((100% - (13 * 6px)) / 14 * 0.72);
-  background: rgba(2, 6, 23, 0.92);
-  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 12px;
-  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.45);
   z-index: 2;
 }
 .piano-key.is-on {
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25), 0 0 22px rgba(34, 211, 238, 0.14);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3), 0 0 22px rgba(34, 211, 238, 0.18);
   transform: translateY(-1px);
 }
 .piano-white.is-on {
-  background: rgba(16, 185, 129, 0.22);
-  border-color: rgba(34, 211, 238, 0.22);
+  background: rgba(16, 185, 129, 0.26);
+  border-color: rgba(34, 211, 238, 0.28);
 }
 .piano-black.is-on {
   background: rgba(16, 185, 129, 0.5);
@@ -57,7 +70,7 @@
   text-align: center;
   font-size: clamp(8px, 1.2vw, 11px);
   line-height: 1;
-  color: rgba(226, 232, 240, 0.65);
+  color: rgba(226, 232, 240, 0.72);
   letter-spacing: 0.02em;
   pointer-events: none;
   white-space: nowrap;
@@ -82,4 +95,3 @@
     display: none;
   }
 }
-

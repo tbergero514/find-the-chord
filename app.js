@@ -202,7 +202,7 @@ function persistToHash() {
 
 function chip(text, tone = "slate") {
   const map = {
-    slate: "border-slate-800 bg-slate-950/50 text-slate-200",
+    slate: "border-slate-600/40 bg-slate-800/60 text-slate-200",
     emerald: "border-emerald-400/20 bg-emerald-500/12 text-emerald-200",
     cyan: "border-cyan-400/20 bg-cyan-500/10 text-cyan-200",
   };
@@ -442,7 +442,7 @@ function buttonForChord(ch, opts = {}) {
       ? "border-emerald-400/20 bg-emerald-500/8 hover:bg-emerald-500/12"
       : opts.accent === "cyan"
       ? "border-cyan-400/20 bg-cyan-500/8 hover:bg-cyan-500/12"
-      : "border-slate-800 bg-slate-950/35 hover:bg-slate-950/55";
+      : "border-slate-600/35 bg-slate-800/45 hover:bg-slate-700/40";
 
   btn.className =
     "group w-full rounded-xl border px-3 py-2 text-left transition active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 " +
@@ -508,8 +508,8 @@ function tabMeta(tab) {
 
 function renderSuggestionTabs() {
   const t = state.suggestTab;
-  const active = "bg-slate-900/60 text-slate-100";
-  const inactive = "text-slate-300 hover:bg-slate-900/40";
+  const active = "bg-slate-700/70 text-slate-100";
+  const inactive = "text-slate-300 hover:bg-slate-700/35";
   const btns = [
     [el.tabDiatonic, "diatonic"],
     [el.tabSmooth, "smooth"],
@@ -590,13 +590,13 @@ function renderProgression() {
   progression.forEach((p, idx) => {
     const wrap = document.createElement("div");
     wrap.className =
-      "flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-950/35 px-2 py-1.5 text-xs text-slate-200";
+      "flex items-center gap-1.5 rounded-xl border border-slate-600/35 bg-slate-800/45 px-2 py-1.5 text-xs text-slate-200";
     if (idx === progressionCursor) {
       wrap.className += " ring-2 ring-cyan-500/25";
     }
 
     const main = document.createElement("button");
-    main.className = "px-2 py-1 rounded-lg hover:bg-slate-950/60 transition";
+    main.className = "px-2 py-1 rounded-lg hover:bg-slate-700/45 transition";
     main.textContent = `${p.name} • ${p.roman}`;
     main.addEventListener("click", () => {
       setCurrentChord({ name: p.name, roman: p.roman, notes: p.notes });
@@ -607,7 +607,7 @@ function renderProgression() {
 
     const left = document.createElement("button");
     left.className =
-      "w-7 h-7 grid place-items-center rounded-lg border border-slate-800 bg-slate-950/40 hover:bg-slate-950/70 transition";
+      "w-7 h-7 grid place-items-center rounded-lg border border-slate-600/35 bg-slate-800/60 hover:bg-slate-700/50 transition";
     left.textContent = "←";
     left.title = "Move left";
     left.disabled = idx === 0;
@@ -627,7 +627,7 @@ function renderProgression() {
 
     const right = document.createElement("button");
     right.className =
-      "w-7 h-7 grid place-items-center rounded-lg border border-slate-800 bg-slate-950/40 hover:bg-slate-950/70 transition";
+      "w-7 h-7 grid place-items-center rounded-lg border border-slate-600/35 bg-slate-800/60 hover:bg-slate-700/50 transition";
     right.textContent = "→";
     right.title = "Move right";
     right.disabled = idx === progression.length - 1;
@@ -686,7 +686,7 @@ function renderHistory() {
     for (const target of targets) {
       const b = document.createElement("button");
       b.className =
-        "rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/55 active:scale-[0.99] transition";
+              "rounded-xl border border-slate-600/35 bg-slate-800/45 px-3 py-2 text-xs text-slate-200 hover:bg-slate-700/40 active:scale-[0.99] transition";
       b.textContent = h.label;
       b.addEventListener("click", () => {
         const notes =
@@ -713,8 +713,8 @@ function setCurrentChord(ch) {
 }
 
 function renderColorButtons() {
-  const active = "bg-slate-900/60 text-slate-100";
-  const inactive = "text-slate-300 hover:bg-slate-900/40";
+  const active = "bg-slate-700/70 text-slate-100";
+  const inactive = "text-slate-300 hover:bg-slate-700/35";
   const ext = currentChord?.name?.includes("9") ? "9" : currentChord?.name?.includes("7") ? "7" : "triad";
   const map = [
     [el.colorTriad, "triad"],
@@ -731,9 +731,9 @@ function renderColorButtons() {
 
 function renderVoicingButtons() {
   const active =
-    "voicing-btn px-2 sm:px-2.5 py-2 text-xs rounded-lg transition text-center whitespace-nowrap flex-1 min-w-[4.5rem] sm:flex-initial sm:min-w-0 bg-slate-900/60 text-slate-100";
+    "voicing-btn px-2 sm:px-2.5 py-2 text-xs rounded-lg transition text-center whitespace-nowrap flex-1 min-w-[4.5rem] sm:flex-initial sm:min-w-0 bg-slate-700/70 text-slate-100";
   const inactive =
-    "voicing-btn px-2 sm:px-2.5 py-2 text-xs rounded-lg transition text-center whitespace-nowrap flex-1 min-w-[4.5rem] sm:flex-initial sm:min-w-0 text-slate-300 hover:bg-slate-900/40";
+    "voicing-btn px-2 sm:px-2.5 py-2 text-xs rounded-lg transition text-center whitespace-nowrap flex-1 min-w-[4.5rem] sm:flex-initial sm:min-w-0 text-slate-300 hover:bg-slate-700/35";
   document.querySelectorAll(".voicing-btn[data-voicing]").forEach((btn) => {
     const m = btn.getAttribute("data-voicing");
     btn.className = m === state.voicing ? active : inactive;

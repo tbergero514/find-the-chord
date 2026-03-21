@@ -29,95 +29,10 @@
     <script src="https://cdn.jsdelivr.net/npm/tonal/browser/tonal.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
 
-    <style>
-      :root {
-        color-scheme: dark;
-      }
-
-      /* Piano */
-      .piano {
-        position: relative;
-        width: 100%;
-        height: 138px;
-        user-select: none;
-        overflow: hidden;
-      }
-      .piano-white-row {
-        display: grid;
-        grid-template-columns: repeat(14, minmax(0, 1fr));
-        gap: 6px;
-        height: 138px;
-      }
-      .piano-key {
-        border-radius: 12px;
-        border: 1px solid rgba(148, 163, 184, 0.12);
-        transition: transform 80ms ease, box-shadow 120ms ease, background-color 120ms ease;
-      }
-      .piano-white {
-        background: rgba(241, 245, 249, 0.06);
-        position: relative;
-      }
-      .piano-black {
-        position: absolute;
-        top: 10px;
-        height: 86px;
-        width: calc((100% - (13 * 6px)) / 14 * 0.72);
-        background: rgba(2, 6, 23, 0.92);
-        border: 1px solid rgba(148, 163, 184, 0.16);
-        border-radius: 12px;
-        box-shadow: 0 12px 22px rgba(0, 0, 0, 0.35);
-        z-index: 2;
-      }
-      .piano-key.is-on {
-        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25), 0 0 22px rgba(34, 211, 238, 0.14);
-        transform: translateY(-1px);
-      }
-      .piano-white.is-on {
-        background: rgba(16, 185, 129, 0.22);
-        border-color: rgba(34, 211, 238, 0.22);
-      }
-      .piano-black.is-on {
-        background: rgba(16, 185, 129, 0.5);
-        border-color: rgba(34, 211, 238, 0.25);
-      }
-      .piano-label {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 10px;
-        padding: 0 6px;
-        text-align: center;
-        font-size: clamp(8px, 1.2vw, 11px);
-        line-height: 1;
-        color: rgba(226, 232, 240, 0.65);
-        letter-spacing: 0.02em;
-        pointer-events: none;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      @media (max-width: 640px) {
-        .piano {
-          height: 120px;
-        }
-        .piano-white-row {
-          gap: 4px;
-          height: 120px;
-        }
-        .piano-black {
-          top: 8px;
-          height: 74px;
-          width: calc((100% - (13 * 4px)) / 14 * 0.66);
-        }
-        .piano-label {
-          display: none;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="./styles.css" />
   </head>
 
-  <body class="min-h-screen bg-slate-950 text-slate-100 font-sans">
+  <body class="app-theme min-h-screen text-slate-100 font-sans antialiased">
     <div class="mx-auto max-w-6xl px-4 py-8">
       <header class="mb-6">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -137,13 +52,13 @@
           <div class="flex items-center gap-3">
             <button
               id="howBtn"
-              class="rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200 hover:bg-slate-900/70 active:scale-[0.99] transition"
+              class="rounded-xl border border-slate-600/45 bg-slate-800/60 shadow-md shadow-black/15 px-3 py-2 text-sm text-slate-200 hover:bg-slate-700/55 active:scale-[0.99] transition"
             >
               How It Works
             </button>
             <button
               id="audioBtn"
-              class="rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200 hover:bg-slate-900/70 active:scale-[0.99] transition"
+              class="rounded-xl border border-slate-600/45 bg-slate-800/60 shadow-md shadow-black/15 px-3 py-2 text-sm text-slate-200 hover:bg-slate-700/55 active:scale-[0.99] transition"
             >
               Enable Audio
             </button>
@@ -163,7 +78,7 @@
         <div id="howBackdrop" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm z-0"></div>
         <div class="relative z-10 mx-auto flex h-full max-w-3xl items-center justify-center px-4 py-8 pointer-events-none">
           <div
-            class="w-full max-h-[85vh] overflow-y-auto rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl pointer-events-auto"
+            class="w-full max-h-[85vh] overflow-y-auto rounded-2xl border border-slate-500/40 bg-slate-800/95 p-5 shadow-2xl shadow-black/40 ring-1 ring-slate-400/15 pointer-events-auto"
             role="dialog"
             aria-modal="true"
             aria-labelledby="howTitle"
@@ -178,7 +93,7 @@
             </div>
 
             <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
+              <div class="rounded-2xl border border-slate-600/40 bg-slate-800/55 shadow-lg shadow-black/30 ring-1 ring-slate-400/10 p-4">
                 <div class="text-sm font-semibold">1) Pick your key + mode</div>
                 <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
                   <li><span class="font-medium text-slate-200">Root Note</span> sets the key center.</li>
@@ -186,7 +101,7 @@
                 </ul>
               </div>
 
-              <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
+              <div class="rounded-2xl border border-slate-600/40 bg-slate-800/55 shadow-lg shadow-black/30 ring-1 ring-slate-400/10 p-4">
                 <div class="text-sm font-semibold">2) Click chords to explore</div>
                 <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
                   <li>Any chord you click becomes the <span class="font-medium text-slate-200">Current Chord</span>.</li>
@@ -196,7 +111,7 @@
                 </ul>
               </div>
 
-              <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
+              <div class="rounded-2xl border border-slate-600/40 bg-slate-800/55 shadow-lg shadow-black/30 ring-1 ring-slate-400/10 p-4">
                 <div class="text-sm font-semibold">3) Understand the suggestion grids</div>
                 <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
                   <li><span class="font-medium text-slate-200">Diatonic</span>: the 7 chords inside the scale.</li>
@@ -205,7 +120,7 @@
                 </ul>
               </div>
 
-              <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
+              <div class="rounded-2xl border border-slate-600/40 bg-slate-800/55 shadow-lg shadow-black/30 ring-1 ring-slate-400/10 p-4">
                 <div class="text-sm font-semibold">4) Build a progression you control</div>
                 <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
                   <li>Use <span class="font-medium text-slate-200">Add to Progression</span> to append the current chord.</li>
@@ -240,7 +155,7 @@
             <div class="mt-4">
               <button
                 id="howCloseBottomBtn"
-                class="w-full rounded-xl bg-slate-900/40 border border-slate-800 px-3 py-2 text-sm text-slate-200 hover:bg-slate-900/70 active:scale-[0.99] transition"
+                class="w-full rounded-xl bg-slate-800/70 border border-slate-600/35 px-3 py-2 text-sm text-slate-200 hover:bg-slate-700/55 active:scale-[0.99] transition"
               >
                 Close
               </button>
@@ -260,7 +175,7 @@
       >
         <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" aria-hidden="true"></div>
         <div
-          class="relative z-10 w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+          class="relative z-10 w-full max-w-md rounded-2xl border border-slate-500/40 bg-slate-800/95 p-6 shadow-2xl shadow-black/40 ring-1 ring-slate-400/15"
         >
           <h2 id="welcomeTitle" class="text-xl font-semibold text-slate-100">
             Welcome to Find The Chord!
@@ -293,14 +208,14 @@
         class="fixed inset-0 z-[55] hidden"
         aria-hidden="true"
       >
-        <div id="hintBackdrop" class="absolute inset-0 bg-slate-950/50 cursor-pointer" tabindex="-1"></div>
+        <div id="hintBackdrop" class="absolute inset-0 bg-slate-950/55 cursor-pointer" tabindex="-1"></div>
         <div
           id="hintCard"
-          class="absolute z-10 max-w-[220px] rounded-xl border border-slate-600 bg-slate-900 px-4 py-3 text-sm text-slate-200 shadow-xl"
+          class="absolute z-10 max-w-[220px] rounded-xl border border-slate-500/45 bg-slate-800 px-4 py-3 text-sm text-slate-200 shadow-xl shadow-black/35 ring-1 ring-slate-400/10"
           role="tooltip"
         >
           <span class="pointer-events-none">Click here to learn more.</span>
-          <div id="hintArrow" class="absolute -top-2 h-0 w-0 border-l-[8px] border-r-[8px] border-b-[8px] border-l-transparent border-r-transparent border-b-slate-900" aria-hidden="true"></div>
+          <div id="hintArrow" class="absolute -top-2 h-0 w-0 border-l-[8px] border-r-[8px] border-b-[8px] border-l-transparent border-r-transparent border-b-slate-800" aria-hidden="true"></div>
         </div>
       </div>
 
@@ -317,7 +232,7 @@
       </div>
 
       <!-- Piano Visualizer -->
-      <section class="mb-6 rounded-2xl border border-slate-800 bg-slate-900/20 p-4" aria-label="Piano visualizer">
+      <section class="mb-6 rounded-2xl border border-slate-600/40 bg-slate-800/55 shadow-lg shadow-black/30 ring-1 ring-slate-400/10 p-4" aria-label="Piano visualizer">
         <div class="flex items-end justify-between gap-4">
           <div>
             <div class="text-xs text-slate-400">Visualizer</div>
@@ -335,7 +250,7 @@
 
       <!-- Selector -->
       <section
-        class="mb-6 rounded-2xl border border-slate-800 bg-slate-900/20 p-4"
+        class="mb-6 rounded-2xl border border-slate-600/40 bg-slate-800/55 shadow-lg shadow-black/30 ring-1 ring-slate-400/10 p-4"
         aria-label="Selector"
       >
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -344,7 +259,7 @@
               <div class="text-xs text-slate-400 mb-1">Root Note</div>
               <select
                 id="rootSelect"
-                class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-emerald-500/30"
+                class="w-full rounded-xl border border-slate-500/40 bg-slate-800/90 px-3 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-emerald-500/35"
               ></select>
             </label>
 
@@ -352,7 +267,7 @@
               <div class="text-xs text-slate-400 mb-1">Scale</div>
               <select
                 id="scaleSelect"
-                class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-cyan-500/25"
+                class="w-full rounded-xl border border-slate-500/40 bg-slate-800/90 px-3 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-cyan-500/35"
               >
                 <option value="major">Major</option>
                 <option value="minor">Minor</option>
@@ -370,10 +285,10 @@
       </section>
 
       <!-- Bento Grid -->
-      <section class="grid grid-cols-1 gap-4 lg:grid-cols-12" aria-label="Bento grid">
+      <section class="grid grid-cols-1 gap-5 lg:grid-cols-12" aria-label="Bento grid">
         <!-- Explore: one card — header tile, color/voicing, then chord suggestions (type tabs + title + grid) -->
-        <div class="lg:col-span-12 rounded-2xl border border-slate-800 bg-slate-900/20 overflow-hidden">
-          <div class="p-4 pb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between border-b border-slate-800/80">
+        <div class="lg:col-span-12 rounded-2xl border border-slate-600/40 bg-slate-800/55 shadow-lg shadow-black/30 ring-1 ring-slate-400/10 overflow-hidden">
+          <div class="p-4 pb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between border-b border-slate-600/40">
             <div class="min-w-0">
               <div class="text-xs text-slate-400">Explore</div>
               <h2 class="mt-1 text-lg font-semibold">Explore</h2>
@@ -385,7 +300,7 @@
               <button
                 type="button"
                 id="currentChordPlayTile"
-                class="w-full rounded-xl border border-slate-700/90 bg-slate-950/60 px-3 py-2.5 text-left shadow-sm transition hover:border-emerald-400/35 hover:bg-slate-900/70 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45"
+                class="w-full rounded-xl border border-slate-500/45 bg-slate-800/90 px-3 py-2.5 text-left shadow-md shadow-black/20 transition hover:border-emerald-400/45 hover:bg-slate-700/55 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45"
                 aria-label="Play current chord"
                 title="Play current chord"
               >
@@ -420,10 +335,10 @@
           </div>
 
           <!-- Color + Voicing -->
-          <div class="px-4 pt-4 pb-5 bg-slate-950/25">
+          <div class="px-4 pt-4 pb-5 bg-slate-800/40">
             <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
               <div class="text-xs text-slate-400 shrink-0 sm:pt-0.5">Color</div>
-              <div class="flex items-center rounded-xl border border-slate-800 bg-slate-950/50 p-1 w-full sm:w-auto sm:flex-1 sm:max-w-xl">
+              <div class="flex items-center rounded-xl border border-slate-600/35 bg-slate-800/55 p-1 w-full sm:w-auto sm:flex-1 sm:max-w-xl">
                 <button id="colorTriad" class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap">Triad</button>
                 <button id="color7" class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap">7th</button>
                 <button id="color9" class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap">9th</button>
@@ -432,7 +347,7 @@
 
             <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:gap-3">
               <div class="text-xs text-slate-400 shrink-0 sm:pt-0.5">Voicing</div>
-              <div class="flex flex-wrap gap-1 rounded-xl border border-slate-800 bg-slate-950/35 p-1 w-full sm:flex-1 sm:min-w-0">
+              <div class="flex flex-wrap gap-1 rounded-xl border border-slate-600/35 bg-slate-800/45 p-1 w-full sm:flex-1 sm:min-w-0">
                 <button type="button" data-voicing="spread" class="voicing-btn px-2 sm:px-2.5 py-2 text-xs rounded-lg transition text-center whitespace-nowrap flex-1 min-w-[4.5rem] sm:flex-initial sm:min-w-0">
                   Spread
                 </button>
@@ -456,10 +371,10 @@
           </div>
 
           <!-- Chord suggestions: title, tab buttons, subtitle, grid -->
-          <div class="border-t border-slate-800/80 px-4 pt-4 pb-4 bg-slate-950/15">
+          <div class="border-t border-slate-600/40 px-4 pt-4 pb-4 bg-slate-800/30">
             <div class="text-xs text-slate-400">Chord suggestions</div>
 
-            <div class="mt-3 grid grid-cols-3 items-center rounded-xl border border-slate-800 bg-slate-950/35 p-1 w-full max-w-xl">
+            <div class="mt-3 grid grid-cols-3 items-center rounded-xl border border-slate-600/35 bg-slate-800/45 p-1 w-full max-w-xl">
               <button
                 id="tabDiatonic"
                 class="px-2 sm:px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap"
@@ -500,7 +415,7 @@
         </div>
 
         <!-- Progression (separate card) -->
-        <div class="lg:col-span-12 rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
+        <div class="lg:col-span-12 rounded-2xl border border-slate-600/40 bg-slate-800/55 shadow-lg shadow-black/30 ring-1 ring-slate-400/10 p-4">
           <div class="flex flex-col gap-3">
             <div>
               <div class="text-xs text-slate-400">Progression</div>
@@ -517,7 +432,7 @@
             </div>
 
             <div class="flex flex-wrap items-center justify-start gap-2">
-              <div class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
+              <div class="flex items-center gap-2 rounded-xl border border-slate-600/35 bg-slate-800/45 px-3 py-2">
                 <div class="text-[11px] text-slate-400">BPM</div>
                 <input
                   id="bpmRange"
@@ -529,39 +444,39 @@
                 />
                 <div id="bpmLabel" class="w-10 text-right text-[11px] text-slate-200">90</div>
               </div>
-              <label class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
+              <label class="flex items-center gap-2 rounded-xl border border-slate-600/35 bg-slate-800/45 px-3 py-2">
                 <input id="vlToggle" type="checkbox" class="accent-emerald-300" />
                 <span class="text-[11px] text-slate-200">Voice-lead</span>
               </label>
               <button
                 id="copyProgBtn"
-                class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+                class="rounded-xl border border-slate-600/35 bg-slate-800/60 px-3 py-2 text-xs text-slate-200 hover:bg-slate-700/50 active:scale-[0.99] transition"
               >
                 Copy
               </button>
-              <label class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
+              <label class="flex items-center gap-2 rounded-xl border border-slate-600/35 bg-slate-800/45 px-3 py-2">
                 <input id="loopToggle" type="checkbox" class="accent-cyan-300" />
                 <span class="text-[11px] text-slate-200">Loop</span>
               </label>
-              <label class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
+              <label class="flex items-center gap-2 rounded-xl border border-slate-600/35 bg-slate-800/45 px-3 py-2">
                 <input id="metroToggle" type="checkbox" class="accent-emerald-300" />
                 <span class="text-[11px] text-slate-200">Metronome</span>
               </label>
               <button
                 id="undoProgBtn"
-                class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+                class="rounded-xl border border-slate-600/35 bg-slate-800/60 px-3 py-2 text-xs text-slate-200 hover:bg-slate-700/50 active:scale-[0.99] transition"
               >
                 Undo
               </button>
               <button
                 id="redoProgBtn"
-                class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+                class="rounded-xl border border-slate-600/35 bg-slate-800/60 px-3 py-2 text-xs text-slate-200 hover:bg-slate-700/50 active:scale-[0.99] transition"
               >
                 Redo
               </button>
               <button
                 id="clearProgBtn"
-                class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+                class="rounded-xl border border-slate-600/35 bg-slate-800/60 px-3 py-2 text-xs text-slate-200 hover:bg-slate-700/50 active:scale-[0.99] transition"
               >
                 Clear
               </button>
@@ -571,7 +486,7 @@
         </div>
 
         <!-- History (always last) -->
-        <div class="lg:col-span-12 rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
+        <div class="lg:col-span-12 rounded-2xl border border-slate-600/40 bg-slate-800/55 shadow-lg shadow-black/30 ring-1 ring-slate-400/10 p-4">
           <div class="flex items-center justify-between gap-3">
             <div>
               <div class="text-xs text-slate-400">History</div>
@@ -579,7 +494,7 @@
             </div>
             <button
               id="clearHistoryBtn"
-              class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+              class="rounded-xl border border-slate-600/35 bg-slate-800/60 px-3 py-2 text-xs text-slate-200 hover:bg-slate-700/50 active:scale-[0.99] transition"
             >
               Clear
             </button>
@@ -591,14 +506,14 @@
       <div class="mt-6 flex items-center justify-end">
         <button
           id="diagBtn"
-          class="rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/55 active:scale-[0.99] transition"
+          class="rounded-xl border border-slate-600/35 bg-slate-800/45 px-3 py-2 text-xs text-slate-200 hover:bg-slate-700/40 active:scale-[0.99] transition"
         >
           Diagnostics
         </button>
       </div>
       <div
         id="statusLine"
-        class="mt-3 rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 whitespace-pre-wrap"
+        class="mt-3 rounded-xl border border-slate-600/35 bg-slate-800/60 px-3 py-2 text-xs text-slate-200 whitespace-pre-wrap"
       ></div>
     </div>
 
@@ -791,7 +706,7 @@
 
       function chip(text, tone = "slate") {
         const map = {
-          slate: "border-slate-800 bg-slate-950/50 text-slate-200",
+          slate: "border-slate-600/40 bg-slate-800/60 text-slate-200",
           emerald: "border-emerald-400/20 bg-emerald-500/12 text-emerald-200",
           cyan: "border-cyan-400/20 bg-cyan-500/10 text-cyan-200",
         };
@@ -1031,7 +946,7 @@
             ? "border-emerald-400/20 bg-emerald-500/8 hover:bg-emerald-500/12"
             : opts.accent === "cyan"
             ? "border-cyan-400/20 bg-cyan-500/8 hover:bg-cyan-500/12"
-            : "border-slate-800 bg-slate-950/35 hover:bg-slate-950/55";
+            : "border-slate-600/35 bg-slate-800/45 hover:bg-slate-700/40";
 
         btn.className =
           "group w-full rounded-xl border px-3 py-2 text-left transition active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 " +
@@ -1046,7 +961,7 @@
 
         const roman = document.createElement("div");
         roman.className =
-          "text-[11px] font-medium text-slate-300/90 rounded-lg border border-slate-800 bg-slate-950/40 px-2 py-0.5";
+          "text-[11px] font-medium text-slate-300/90 rounded-lg border border-slate-600/35 bg-slate-800/60 px-2 py-0.5";
         roman.textContent = ch.roman || "—";
 
         top.appendChild(name);
@@ -1097,8 +1012,8 @@
 
       function renderSuggestionTabs() {
         const t = state.suggestTab;
-        const active = "bg-slate-900/60 text-slate-100";
-        const inactive = "text-slate-300 hover:bg-slate-900/40";
+        const active = "bg-slate-700/70 text-slate-100";
+        const inactive = "text-slate-300 hover:bg-slate-700/35";
         const btns = [
           [el.tabDiatonic, "diatonic"],
           [el.tabSmooth, "smooth"],
@@ -1179,13 +1094,13 @@
         progression.forEach((p, idx) => {
           const wrap = document.createElement("div");
           wrap.className =
-            "flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-950/35 px-2 py-1.5 text-xs text-slate-200";
+            "flex items-center gap-1.5 rounded-xl border border-slate-600/35 bg-slate-800/45 px-2 py-1.5 text-xs text-slate-200";
           if (idx === progressionCursor) {
             wrap.className += " ring-2 ring-cyan-500/25";
           }
 
           const main = document.createElement("button");
-          main.className = "px-2 py-1 rounded-lg hover:bg-slate-950/60 transition";
+          main.className = "px-2 py-1 rounded-lg hover:bg-slate-700/45 transition";
           main.textContent = `${p.name} • ${p.roman}`;
           main.addEventListener("click", () => {
             setCurrentChord({ name: p.name, roman: p.roman, notes: p.notes });
@@ -1196,7 +1111,7 @@
 
           const left = document.createElement("button");
           left.className =
-            "w-7 h-7 grid place-items-center rounded-lg border border-slate-800 bg-slate-950/40 hover:bg-slate-950/70 transition";
+            "w-7 h-7 grid place-items-center rounded-lg border border-slate-600/35 bg-slate-800/60 hover:bg-slate-700/50 transition";
           left.textContent = "←";
           left.title = "Move left";
           left.disabled = idx === 0;
@@ -1216,7 +1131,7 @@
 
           const right = document.createElement("button");
           right.className =
-            "w-7 h-7 grid place-items-center rounded-lg border border-slate-800 bg-slate-950/40 hover:bg-slate-950/70 transition";
+            "w-7 h-7 grid place-items-center rounded-lg border border-slate-600/35 bg-slate-800/60 hover:bg-slate-700/50 transition";
           right.textContent = "→";
           right.title = "Move right";
           right.disabled = idx === progression.length - 1;
@@ -1275,7 +1190,7 @@
           for (const target of targets) {
             const b = document.createElement("button");
             b.className =
-              "rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/55 active:scale-[0.99] transition";
+              "rounded-xl border border-slate-600/35 bg-slate-800/45 px-3 py-2 text-xs text-slate-200 hover:bg-slate-700/40 active:scale-[0.99] transition";
             b.textContent = h.label;
             b.addEventListener("click", () => {
               const notes =
@@ -1302,8 +1217,8 @@
       }
 
       function renderColorButtons() {
-        const active = "bg-slate-900/60 text-slate-100";
-        const inactive = "text-slate-300 hover:bg-slate-900/40";
+        const active = "bg-slate-700/70 text-slate-100";
+        const inactive = "text-slate-300 hover:bg-slate-700/35";
         const ext = currentChord?.name?.includes("9") ? "9" : currentChord?.name?.includes("7") ? "7" : "triad";
         const map = [
           [el.colorTriad, "triad"],
