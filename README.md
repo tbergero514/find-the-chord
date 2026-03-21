@@ -41,50 +41,27 @@ Then open:
 
 - **Root Note**: choose the key center (e.g. `C`, `F#`)
 - **Scale**: `Major`, `Minor`, `Mixolydian`, `Dorian`
-- **Chord Type**:
-  - **Triads**: basic 3-note diatonic chords
-  - **7ths**: diatonic 7th chords
-  - **9ths**: diatonic 9th chords
+
+Triads / 7ths / 9ths for the **suggestion grids** are chosen with **Color** (Triad / 7th / 9th) in the Explore card.
+
+**Voicing** (below Color) controls how chords sound when you play the current chord or the progression (when Voice-lead is off): **Spread** (wide, default), **Close** (compact root position), **1st / 2nd / 3rd inv** (bass on successive chord tones), **Drop-2** (jazz-style; for triads the middle voice is dropped an octave).
 
 The **Scale Notes** row shows the active scale tones.
 
-### Workbench
+### Explore (single card)
 
-#### Current Chord
+One card with **current chord + Color** on top and the **chord suggestion grid** below (same border, divided by a subtle line).
 
-Shows:
-- **Chord name**
-- **Notes**
-- **Roman numeral** (relative to the selected key/mode)
+- **Add to Progression**: adds the **current chord** to your progression.
+- **Chord suggestions**: tabbed grids (**Diatonic**, **Smooth Subs**, **Harmonic Spice**).
 
-Buttons:
-- **Play**: plays the current chord with a spread voicing (root low, other notes higher)
-- **Add**: adds the current chord to your progression (user-controlled)
+### Progression (separate card)
 
-#### Progression (user-controlled)
-
-Build your own chord progression (separate from History).
-
-- **Add**: appends the current chord to the progression
-- **← / →**: reorder chords
-- **×**: remove a chord
-- **Clear**: remove all chords
-- **Play**: plays the progression with more separation between chords for clarity
+Build your row with **← / →**, **×**, **Clear**, **Play**, BPM, voice-lead, copy, loop, metronome, undo/redo.
 
 #### History (automatic)
 
 Logs the last **5** chords you clicked anywhere in the app so you can see what you’ve been trying. Click a history item to recall/replay it.
-
-### Suggestion Engine
-
-The grids provide different “families” of options:
-
-- **Diatonic**: the 7 primary chords inside the selected key/mode
-- **Smooth Subs**: diatonic substitutes that share **2+ notes** with other diatonic chords (captures many “relative”/mediant-type moves)
-- **Harmonic Spice**:
-  - **Secondary dominants** (e.g. `V/ii`, `V/V`)
-  - **Borrowed chords** from the parallel major/minor (depending on mode)
-  - **Tritone substitutions** of secondary dominants
 
 ### Piano visualizer
 

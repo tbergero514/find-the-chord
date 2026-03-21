@@ -36,11 +36,16 @@ const MODE_TRIAD_QUALITIES = {
 };
 
 /** @type {{ root: string; mode: keyof typeof MODE_TRIAD_QUALITIES }} */
+/** @type {readonly string[]} */
+const VOICING_MODES = ["spread", "close", "inv1", "inv2", "inv3", "drop2"];
+
 const state = {
   root: "C",
   mode: "major",
   ext: "triad", // "triad" | "7" | "9"
   suggestTab: "diatonic", // "diatonic" | "smooth" | "spice"
+  /** Playback voicing: spread, close, inv1–3, drop2 */
+  voicing: "spread",
 };
 
 /** @type {{name: string; notes: string[]; roman: string; tag?: string; flavor?: string} | null} */
@@ -70,7 +75,6 @@ let welcomeClosed = false;
 const el = {
   rootSelect: document.getElementById("rootSelect"),
   scaleSelect: document.getElementById("scaleSelect"),
-  extSelect: document.getElementById("extSelect"),
   scaleNotes: document.getElementById("scaleNotes"),
   statusLine: document.getElementById("statusLine"),
   diagBtn: document.getElementById("diagBtn"),
@@ -87,13 +91,13 @@ const el = {
   howCloseBottomBtn: document.getElementById("howCloseBottomBtn"),
   suggestTitle: document.getElementById("suggestTitle"),
   suggestDesc: document.getElementById("suggestDesc"),
-  suggestAddBtn: document.getElementById("suggestAddBtn"),
   tabDiatonic: document.getElementById("tabDiatonic"),
   tabSmooth: document.getElementById("tabSmooth"),
   tabSpice: document.getElementById("tabSpice"),
   suggestGrid: document.getElementById("suggestGrid"),
   currentChordName: document.getElementById("currentChordName"),
   currentRoman: document.getElementById("currentRoman"),
+  currentChordPlayTile: document.getElementById("currentChordPlayTile"),
   currentNotes: document.getElementById("currentNotes"),
   addToProgBtn: document.getElementById("addToProgBtn"),
   progressionStrip: document.getElementById("progressionStrip"),
@@ -109,7 +113,6 @@ const el = {
   clearProgBtn: document.getElementById("clearProgBtn"),
   historyStrip: document.getElementById("historyStrip"),
   clearHistoryBtn: document.getElementById("clearHistoryBtn"),
-  playBtn: document.getElementById("playBtn"),
   audioBtn: document.getElementById("audioBtn"),
   colorTriad: document.getElementById("colorTriad"),
   color7: document.getElementById("color7"),
@@ -157,6 +160,7 @@ function encodeStateToHash() {
     root: state.root,
     mode: state.mode,
     ext: state.ext,
+    voc: state.voicing,
     tab: state.suggestTab,
     bpm: progressionBpm,
     vl: progressionVoiceLeading ? 1 : 0,
@@ -553,6 +557,13 @@ function renderCurrent() {
   if (currentChord?.notes?.length) {
     for (const n of currentChord.notes) el.currentNotes.appendChild(chip(n, "emerald"));
   }
+  if (el.currentChordPlayTile) {
+    const playable = !!(currentChord?.notes?.length);
+    el.currentChordPlayTile.disabled = !playable;
+    el.currentChordPlayTile.title = playable
+      ? `Play: ${currentChord?.name || ""}`
+      : "No chord to play yet";
+  }
   renderPianoHighlights(currentChord?.notes || []);
 }
 
@@ -718,6 +729,17 @@ function renderColorButtons() {
   }
 }
 
+function renderVoicingButtons() {
+  const active =
+    "voicing-btn px-2 sm:px-2.5 py-2 text-xs rounded-lg transition text-center whitespace-nowrap flex-1 min-w-[4.5rem] sm:flex-initial sm:min-w-0 bg-slate-900/60 text-slate-100";
+  const inactive =
+    "voicing-btn px-2 sm:px-2.5 py-2 text-xs rounded-lg transition text-center whitespace-nowrap flex-1 min-w-[4.5rem] sm:flex-initial sm:min-w-0 text-slate-300 hover:bg-slate-900/40";
+  document.querySelectorAll(".voicing-btn[data-voicing]").forEach((btn) => {
+    const m = btn.getAttribute("data-voicing");
+    btn.className = m === state.voicing ? active : inactive;
+  });
+}
+
 function chordVariantName(baseName, target) {
   const info = Tonal.Chord.get(baseName);
   const root = info?.tonic || info?.root || Tonal.Note.pitchClass(baseName) || "";
@@ -744,10 +766,13 @@ function chordVariantName(baseName, target) {
 
 function setCurrentChordVariant(target) {
   if (!currentChord?.name) return;
+  state.ext = target;
   const name = chordVariantName(currentChord.name, target);
   const notes = (Tonal.Chord.get(name)?.notes || []).map(normalizePc);
   setCurrentChord({ name, roman: currentChord.roman, notes, tag: currentChord.tag });
   playCurrentChord();
+  recomputeAndRender();
+  persistToHash();
 }
 
 function addCurrentToProgression() {
@@ -814,6 +839,80 @@ async function initAudio() {
   el.audioBtn.textContent = "Audio Enabled";
   el.audioBtn.className =
     "rounded-xl bg-emerald-500/12 border border-emerald-400/20 px-3 py-2 text-sm text-emerald-200 hover:bg-emerald-500/16 active:scale-[0.99] transition";
+}
+
+/** Root-position close stack: each tone above the previous in register. */
+function closeVoicingStack(pitchClasses) {
+  const arr = (pitchClasses || []).map(normalizePc).filter(Boolean);
+  if (!arr.length) return [];
+  let lastMidi = -Infinity;
+  const out = [];
+  let octave = 3;
+  for (const pc of arr) {
+    let o = octave;
+    let note = `${pc}${o}`;
+    let m = Tone.Frequency(note).toMidi();
+    while (m <= lastMidi && o < 7) {
+      o += 1;
+      note = `${pc}${o}`;
+      m = Tone.Frequency(note).toMidi();
+    }
+    out.push(note);
+    lastMidi = m;
+  }
+  return out;
+}
+
+function rotatePcsLeft(pitchClasses, steps) {
+  const a = (pitchClasses || []).map(normalizePc).filter(Boolean);
+  if (!a.length) return [];
+  const L = a.length;
+  const n = ((steps % L) + L) % L;
+  const out = [];
+  for (let i = 0; i < L; i++) out.push(a[(i + n) % L]);
+  return out;
+}
+
+function drop2Voicing(pitchClasses) {
+  const clean = (pitchClasses || []).map(normalizePc).filter(Boolean);
+  const close = closeVoicingStack(clean);
+  if (close.length < 3) return close;
+  try {
+    if (close.length === 3) {
+      const lowered = Tonal.Note.transpose(close[1], "-8P");
+      return [close[0], lowered, close[2]].sort(
+        (x, y) => Tone.Frequency(x).toMidi() - Tone.Frequency(y).toMidi()
+      );
+    }
+    const i = close.length - 2;
+    const lowered = Tonal.Note.transpose(close[i], "-8P");
+    const replaced = [...close];
+    replaced[i] = lowered;
+    return replaced.sort((x, y) => Tone.Frequency(x).toMidi() - Tone.Frequency(y).toMidi());
+  } catch {
+    return spreadVoicing(clean);
+  }
+}
+
+function voicingForPlayback(pitchClasses, mode) {
+  const clean = (pitchClasses || []).map(normalizePc).filter(Boolean);
+  if (!clean.length) return [];
+  switch (mode) {
+    case "spread":
+      return spreadVoicing(clean);
+    case "close":
+      return closeVoicingStack(clean);
+    case "inv1":
+      return closeVoicingStack(rotatePcsLeft(clean, 1));
+    case "inv2":
+      return closeVoicingStack(rotatePcsLeft(clean, 2));
+    case "inv3":
+      return closeVoicingStack(rotatePcsLeft(clean, 3));
+    case "drop2":
+      return drop2Voicing(clean);
+    default:
+      return spreadVoicing(clean);
+  }
 }
 
 function spreadVoicing(pitchClasses) {
@@ -889,7 +988,7 @@ function voiceLedVoicing(pitchClasses, prevVoiced) {
 function playCurrentChord() {
   if (!currentChord?.notes?.length) return;
   if (!ensureAudio()) return;
-  const voiced = spreadVoicing(currentChord.notes);
+  const voiced = voicingForPlayback(currentChord.notes, state.voicing);
   const now = Tone.now();
   synth.triggerAttackRelease(voiced, 1.6, now, 0.9);
 }
@@ -921,7 +1020,7 @@ function playProgression() {
     Tone.Transport.schedule((time) => {
       const voiced = progressionVoiceLeading
         ? voiceLedVoicing(p.notes || [], prev)
-        : spreadVoicing(p.notes || []);
+        : voicingForPlayback(p.notes || [], state.voicing);
       if (!voiced.length) return;
       synth.triggerAttackRelease(voiced, dur, time, 0.85);
       prev = voiced;
@@ -1069,7 +1168,6 @@ function initSelectors() {
   }
   el.rootSelect.value = state.root;
   el.scaleSelect.value = state.mode;
-  if (el.extSelect) el.extSelect.value = state.ext;
 
   el.rootSelect.addEventListener("change", () => {
     state.root = el.rootSelect.value;
@@ -1079,12 +1177,6 @@ function initSelectors() {
   });
   el.scaleSelect.addEventListener("change", () => {
     state.mode = el.scaleSelect.value;
-    currentChord = null;
-    recomputeAndRender();
-    persistToHash();
-  });
-  el.extSelect?.addEventListener("change", () => {
-    state.ext = el.extSelect.value;
     currentChord = null;
     recomputeAndRender();
     persistToHash();
@@ -1159,7 +1251,6 @@ document.addEventListener("keydown", (e) => {
 el.hintBackdrop?.addEventListener("click", () => closeHint());
 
 el.addToProgBtn?.addEventListener("click", () => addCurrentToProgression());
-el.suggestAddBtn?.addEventListener("click", () => addCurrentToProgression());
 
 function setSuggestTab(tab) {
   state.suggestTab = tab;
@@ -1274,10 +1365,22 @@ el.diagBtn?.addEventListener("click", () => {
   setStatus(`Diagnostics:\n${pretty}`);
 });
 
-el.playBtn.addEventListener("click", () => playCurrentChord());
 el.colorTriad?.addEventListener("click", () => setCurrentChordVariant("triad"));
 el.color7?.addEventListener("click", () => setCurrentChordVariant("7"));
 el.color9?.addEventListener("click", () => setCurrentChordVariant("9"));
+el.currentChordPlayTile?.addEventListener("click", () => playCurrentChord());
+
+document.querySelectorAll(".voicing-btn[data-voicing]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const v = btn.getAttribute("data-voicing");
+    if (v && VOICING_MODES.includes(v)) {
+      state.voicing = v;
+      renderVoicingButtons();
+      persistToHash();
+      playCurrentChord();
+    }
+  });
+});
 
 async function handleEnableAudio() {
   try {
@@ -1366,6 +1469,7 @@ function showLibError(details) {
   if (saved?.root) state.root = saved.root;
   if (saved?.mode) state.mode = saved.mode;
   if (saved?.ext) state.ext = saved.ext;
+  if (saved?.voc && VOICING_MODES.includes(saved.voc)) state.voicing = saved.voc;
   if (saved?.tab) state.suggestTab = saved.tab;
   if (typeof saved?.bpm === "number") progressionBpm = saved.bpm;
   if (typeof saved?.vl === "number") progressionVoiceLeading = !!saved.vl;
@@ -1376,6 +1480,7 @@ function showLibError(details) {
   syncProgressionControls();
   renderHistory();
   renderProgression();
+  renderVoicingButtons();
   buildPiano(); // visual-only; no libs required
 
   const tonal = await ensureTonal();

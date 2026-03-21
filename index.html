@@ -183,7 +183,6 @@
                 <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
                   <li><span class="font-medium text-slate-200">Root Note</span> sets the key center.</li>
                   <li><span class="font-medium text-slate-200">Scale</span> picks the mode (Major/Minor/Mixolydian/Dorian).</li>
-                  <li><span class="font-medium text-slate-200">Chord Type</span> switches Triads / 7ths / 9ths.</li>
                 </ul>
               </div>
 
@@ -192,7 +191,7 @@
                 <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
                   <li>Any chord you click becomes the <span class="font-medium text-slate-200">Current Chord</span>.</li>
                   <li>The <span class="font-medium text-slate-200">Piano</span> highlights its notes.</li>
-                  <li>Use <span class="font-medium text-slate-200">Color</span> to quickly switch the current chord between Triad / 7th / 9th.</li>
+                  <li>Use <span class="font-medium text-slate-200">Color</span> (Triad / 7th / 9th) to switch the current chord and which chord types appear in the suggestion grids.</li>
                   <li><span class="font-medium text-slate-200">History</span> auto-logs your last 5 clicks.</li>
                 </ul>
               </div>
@@ -209,7 +208,7 @@
               <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
                 <div class="text-sm font-semibold">4) Build a progression you control</div>
                 <ul class="mt-2 list-disc pl-5 text-sm text-slate-300 space-y-1">
-                  <li>Use <span class="font-medium text-slate-200">Add</span> to append the current chord.</li>
+                  <li>Use <span class="font-medium text-slate-200">Add to Progression</span> to append the current chord.</li>
                   <li>Reorder with <span class="font-medium text-slate-200">← / →</span>, remove with <span class="font-medium text-slate-200">×</span>.</li>
                   <li><span class="font-medium text-slate-200">Play</span> plays the whole progression with separation between chords.</li>
                   <li>Use <span class="font-medium text-slate-200">BPM</span> to set playback speed, and <span class="font-medium text-slate-200">Voice-lead</span> to smooth transitions.</li>
@@ -361,18 +360,6 @@
                 <option value="dorian">Dorian</option>
               </select>
             </label>
-
-            <label class="block col-span-2 sm:col-span-1">
-              <div class="text-xs text-slate-400 mb-1">Chord Type</div>
-              <select
-                id="extSelect"
-                class="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-emerald-500/20"
-              >
-                <option value="triad">Triads</option>
-                <option value="7">7ths</option>
-                <option value="9">9ths</option>
-              </select>
-            </label>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
@@ -384,189 +371,203 @@
 
       <!-- Bento Grid -->
       <section class="grid grid-cols-1 gap-4 lg:grid-cols-12" aria-label="Bento grid">
-        <!-- Workbench -->
-        <div class="lg:col-span-5 rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <div class="text-xs text-slate-400">Workbench</div>
-              <h2 class="mt-1 text-lg font-semibold">Current Chord</h2>
+        <!-- Explore: one card — header tile, color/voicing, then chord suggestions (type tabs + title + grid) -->
+        <div class="lg:col-span-12 rounded-2xl border border-slate-800 bg-slate-900/20 overflow-hidden">
+          <div class="p-4 pb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between border-b border-slate-800/80">
+            <div class="min-w-0">
+              <div class="text-xs text-slate-400">Explore</div>
+              <h2 class="mt-1 text-lg font-semibold">Explore</h2>
+              <p class="mt-1 text-sm text-slate-400 max-w-xl">
+                Pick from suggested chords below, refine with color and voicing, then add to your progression.
+              </p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-col gap-2 shrink-0 w-full max-w-[20rem] sm:w-72 mx-auto sm:mx-0 sm:ml-auto">
               <button
-                id="addToProgBtn"
-                class="rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3 py-2 text-sm font-medium text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:bg-emerald-500/22 hover:border-emerald-400/40 active:scale-[0.99] transition"
+                type="button"
+                id="currentChordPlayTile"
+                class="w-full rounded-xl border border-slate-700/90 bg-slate-950/60 px-3 py-2.5 text-left shadow-sm transition hover:border-emerald-400/35 hover:bg-slate-900/70 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45"
+                aria-label="Play current chord"
+                title="Play current chord"
               >
-                Add
+                <div class="flex justify-between gap-3">
+                  <span class="text-[10px] font-medium uppercase tracking-wide text-slate-500">Chord</span>
+                  <span class="text-[10px] font-medium uppercase tracking-wide text-slate-500">Roman Numeral</span>
+                </div>
+                <div class="mt-1 flex items-baseline justify-between gap-2 min-w-0">
+                  <span id="currentChordName" class="text-sm font-semibold text-slate-100 leading-tight truncate min-w-0 text-left">
+                    —
+                  </span>
+                  <span
+                    id="currentRoman"
+                    class="text-sm font-semibold leading-tight shrink-0 text-right bg-gradient-to-r from-emerald-300 to-cyan-200 bg-clip-text text-transparent"
+                  >
+                    —
+                  </span>
+                </div>
+                <div class="mt-2.5 border-t border-slate-700/60 pt-2">
+                  <div class="text-[10px] font-medium uppercase tracking-wide text-slate-500 mb-1">Notes</div>
+                  <div id="currentNotes" class="flex flex-wrap gap-1.5"></div>
+                </div>
               </button>
               <button
-                id="playBtn"
-                class="rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3 py-2 text-sm font-medium text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:bg-emerald-500/22 hover:border-emerald-400/40 active:scale-[0.99] transition"
+                id="addToProgBtn"
+                type="button"
+                class="w-full rounded-xl border border-sky-400/80 bg-sky-500 px-3 py-2.5 text-sm font-semibold text-white shadow-md shadow-sky-900/20 hover:bg-sky-400 hover:border-sky-300 active:scale-[0.99] transition"
+              >
+                Add to Progression
+              </button>
+            </div>
+          </div>
+
+          <!-- Color + Voicing -->
+          <div class="px-4 pt-4 pb-5 bg-slate-950/25">
+            <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+              <div class="text-xs text-slate-400 shrink-0 sm:pt-0.5">Color</div>
+              <div class="flex items-center rounded-xl border border-slate-800 bg-slate-950/50 p-1 w-full sm:w-auto sm:flex-1 sm:max-w-xl">
+                <button id="colorTriad" class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap">Triad</button>
+                <button id="color7" class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap">7th</button>
+                <button id="color9" class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap">9th</button>
+              </div>
+            </div>
+
+            <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:gap-3">
+              <div class="text-xs text-slate-400 shrink-0 sm:pt-0.5">Voicing</div>
+              <div class="flex flex-wrap gap-1 rounded-xl border border-slate-800 bg-slate-950/35 p-1 w-full sm:flex-1 sm:min-w-0">
+                <button type="button" data-voicing="spread" class="voicing-btn px-2 sm:px-2.5 py-2 text-xs rounded-lg transition text-center whitespace-nowrap flex-1 min-w-[4.5rem] sm:flex-initial sm:min-w-0">
+                  Spread
+                </button>
+                <button type="button" data-voicing="close" class="voicing-btn px-2 sm:px-2.5 py-2 text-xs rounded-lg transition text-center whitespace-nowrap flex-1 min-w-[4.5rem] sm:flex-initial sm:min-w-0">
+                  Close
+                </button>
+                <button type="button" data-voicing="inv1" class="voicing-btn px-2 sm:px-2.5 py-2 text-xs rounded-lg transition text-center whitespace-nowrap flex-1 min-w-[4.5rem] sm:flex-initial sm:min-w-0">
+                  1st inv
+                </button>
+                <button type="button" data-voicing="inv2" class="voicing-btn px-2 sm:px-2.5 py-2 text-xs rounded-lg transition text-center whitespace-nowrap flex-1 min-w-[4.5rem] sm:flex-initial sm:min-w-0">
+                  2nd inv
+                </button>
+                <button type="button" data-voicing="inv3" class="voicing-btn px-2 sm:px-2.5 py-2 text-xs rounded-lg transition text-center whitespace-nowrap flex-1 min-w-[4.5rem] sm:flex-initial sm:min-w-0">
+                  3rd inv
+                </button>
+                <button type="button" data-voicing="drop2" class="voicing-btn px-2 sm:px-2.5 py-2 text-xs rounded-lg transition text-center whitespace-nowrap flex-1 min-w-[4.5rem] sm:flex-initial sm:min-w-0">
+                  Drop-2
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chord suggestions: title, tab buttons, subtitle, grid -->
+          <div class="border-t border-slate-800/80 px-4 pt-4 pb-4 bg-slate-950/15">
+            <div class="text-xs text-slate-400">Chord suggestions</div>
+
+            <div class="mt-3 grid grid-cols-3 items-center rounded-xl border border-slate-800 bg-slate-950/35 p-1 w-full max-w-xl">
+              <button
+                id="tabDiatonic"
+                class="px-2 sm:px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap"
+              >
+                Diatonic
+              </button>
+              <button
+                id="tabSmooth"
+                class="px-2 sm:px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap"
+              >
+                Smooth Subs
+              </button>
+              <button
+                id="tabSpice"
+                class="px-2 sm:px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap"
+              >
+                Harmonic Spice
+              </button>
+            </div>
+
+            <div class="mt-3 min-h-[4.25rem]">
+              <h3
+                id="suggestTitle"
+                class="text-lg font-semibold leading-6 min-h-[1.5rem]"
+              >
+                Diatonic
+              </h3>
+              <p id="suggestDesc" class="text-sm text-slate-400 leading-5 min-h-[2.5rem]">
+                The 7 primary chords of the scale.
+              </p>
+            </div>
+
+            <div
+              id="suggestGrid"
+              class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Progression (separate card) -->
+        <div class="lg:col-span-12 rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
+          <div class="flex flex-col gap-3">
+            <div>
+              <div class="text-xs text-slate-400">Progression</div>
+              <div class="text-sm text-slate-300">User-controlled chord row</div>
+            </div>
+
+            <div class="flex items-center justify-end">
+              <button
+                id="playProgBtn"
+                class="rounded-xl border border-cyan-400/30 bg-cyan-500/15 px-3 py-2 text-xs font-medium text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.12)] hover:bg-cyan-500/22 hover:border-cyan-400/40 active:scale-[0.99] transition"
               >
                 Play
               </button>
             </div>
-          </div>
 
-          <div class="mt-4 grid grid-cols-1 gap-3">
-            <div class="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
-              <div class="flex items-center justify-between gap-3">
-                <div>
-                  <div class="text-xs text-slate-400">Chord</div>
-                  <div id="currentChordName" class="text-2xl font-semibold tracking-tight">
-                    —
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-xs text-slate-400">Roman Numeral</div>
-                  <div
-                    id="currentRoman"
-                    class="text-lg font-semibold bg-gradient-to-r from-emerald-300 to-cyan-200 bg-clip-text text-transparent"
-                  >
-                    —
-                  </div>
-                </div>
+            <div class="flex flex-wrap items-center justify-start gap-2">
+              <div class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
+                <div class="text-[11px] text-slate-400">BPM</div>
+                <input
+                  id="bpmRange"
+                  type="range"
+                  min="60"
+                  max="160"
+                  value="90"
+                  class="w-28 accent-cyan-300"
+                />
+                <div id="bpmLabel" class="w-10 text-right text-[11px] text-slate-200">90</div>
               </div>
-
-              <div class="mt-3">
-                <div class="text-xs text-slate-400 mb-1">Notes</div>
-                <div id="currentNotes" class="flex flex-wrap gap-1.5"></div>
-              </div>
-
-              <div class="mt-3 flex flex-wrap items-center gap-2">
-                <div class="text-xs text-slate-400">Color</div>
-                <div class="flex items-center rounded-xl border border-slate-800 bg-slate-950/35 p-1">
-                  <button id="colorTriad" class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap">Triad</button>
-                  <button id="color7" class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap">7th</button>
-                  <button id="color9" class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap">9th</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
-              <div class="flex flex-col gap-3">
-                <div>
-                  <div class="text-xs text-slate-400">Progression</div>
-                  <div class="text-sm text-slate-300">User-controlled chord row</div>
-                </div>
-
-                <div class="flex items-center justify-end">
-                  <button
-                    id="playProgBtn"
-                    class="rounded-xl border border-cyan-400/30 bg-cyan-500/15 px-3 py-2 text-xs font-medium text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.12)] hover:bg-cyan-500/22 hover:border-cyan-400/40 active:scale-[0.99] transition"
-                  >
-                    Play
-                  </button>
-                </div>
-
-                <div class="flex flex-wrap items-center justify-start gap-2">
-                  <div class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
-                    <div class="text-[11px] text-slate-400">BPM</div>
-                    <input
-                      id="bpmRange"
-                      type="range"
-                      min="60"
-                      max="160"
-                      value="90"
-                      class="w-28 accent-cyan-300"
-                    />
-                    <div id="bpmLabel" class="w-10 text-right text-[11px] text-slate-200">90</div>
-                  </div>
-                  <label class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
-                    <input id="vlToggle" type="checkbox" class="accent-emerald-300" />
-                    <span class="text-[11px] text-slate-200">Voice-lead</span>
-                  </label>
-                  <button
-                    id="copyProgBtn"
-                    class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
-                  >
-                    Copy
-                  </button>
-                  <label class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
-                    <input id="loopToggle" type="checkbox" class="accent-cyan-300" />
-                    <span class="text-[11px] text-slate-200">Loop</span>
-                  </label>
-                  <label class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
-                    <input id="metroToggle" type="checkbox" class="accent-emerald-300" />
-                    <span class="text-[11px] text-slate-200">Metronome</span>
-                  </label>
-                  <button
-                    id="undoProgBtn"
-                    class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
-                  >
-                    Undo
-                  </button>
-                  <button
-                    id="redoProgBtn"
-                    class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
-                  >
-                    Redo
-                  </button>
-                  <button
-                    id="clearProgBtn"
-                    class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
-                  >
-                    Clear
-                  </button>
-                </div>
-              </div>
-              <div id="progressionStrip" class="mt-3 flex flex-wrap gap-2"></div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Suggestion Engine (Tabbed) -->
-        <div class="lg:col-span-7 rounded-2xl border border-slate-800 bg-slate-900/20 p-4">
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div class="w-full sm:w-[360px]">
-              <div class="text-xs text-slate-400">Suggestion Engine</div>
-              <div class="mt-1 min-h-[4.25rem]">
-                <h2
-                  id="suggestTitle"
-                  class="text-lg font-semibold leading-6 min-h-[1.5rem] whitespace-nowrap"
-                >
-                  Diatonic
-                </h2>
-                <p id="suggestDesc" class="text-sm text-slate-400 leading-5 min-h-[2.5rem]">
-                  The 7 primary chords of the scale.
-                </p>
-              </div>
-            </div>
-
-            <div class="flex flex-col items-end gap-2 shrink-0">
+              <label class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
+                <input id="vlToggle" type="checkbox" class="accent-emerald-300" />
+                <span class="text-[11px] text-slate-200">Voice-lead</span>
+              </label>
               <button
-                id="suggestAddBtn"
-                class="rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-3 py-2 text-sm font-medium text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:bg-emerald-500/22 hover:border-emerald-400/40 active:scale-[0.99] transition"
+                id="copyProgBtn"
+                class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
               >
-                Add
+                Copy
               </button>
-              <div class="grid grid-cols-3 items-center rounded-xl border border-slate-800 bg-slate-950/35 p-1 w-full max-w-[420px]">
-                <button
-                  id="tabDiatonic"
-                  class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap"
-                >
-                  Diatonic
-                </button>
-                <button
-                  id="tabSmooth"
-                  class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap"
-                >
-                  Smooth Subs
-                </button>
-                <button
-                  id="tabSpice"
-                  class="px-3 py-2 text-xs rounded-lg transition w-full text-center whitespace-nowrap"
-                >
-                  Harmonic Spice
-                </button>
-              </div>
+              <label class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
+                <input id="loopToggle" type="checkbox" class="accent-cyan-300" />
+                <span class="text-[11px] text-slate-200">Loop</span>
+              </label>
+              <label class="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950/35 px-3 py-2">
+                <input id="metroToggle" type="checkbox" class="accent-emerald-300" />
+                <span class="text-[11px] text-slate-200">Metronome</span>
+              </label>
+              <button
+                id="undoProgBtn"
+                class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+              >
+                Undo
+              </button>
+              <button
+                id="redoProgBtn"
+                class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+              >
+                Redo
+              </button>
+              <button
+                id="clearProgBtn"
+                class="rounded-xl border border-slate-800 bg-slate-950/40 px-3 py-2 text-xs text-slate-200 hover:bg-slate-950/70 active:scale-[0.99] transition"
+              >
+                Clear
+              </button>
             </div>
           </div>
-
-          <div
-            id="suggestGrid"
-            class="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2"
-          ></div>
+          <div id="progressionStrip" class="mt-3 flex flex-wrap gap-2"></div>
         </div>
 
         <!-- History (always last) -->
@@ -671,7 +672,6 @@
       const el = {
         rootSelect: document.getElementById("rootSelect"),
         scaleSelect: document.getElementById("scaleSelect"),
-        extSelect: document.getElementById("extSelect"),
         scaleNotes: document.getElementById("scaleNotes"),
         statusLine: document.getElementById("statusLine"),
         diagBtn: document.getElementById("diagBtn"),
@@ -681,13 +681,13 @@
         howCloseBottomBtn: document.getElementById("howCloseBottomBtn"),
         suggestTitle: document.getElementById("suggestTitle"),
         suggestDesc: document.getElementById("suggestDesc"),
-        suggestAddBtn: document.getElementById("suggestAddBtn"),
         tabDiatonic: document.getElementById("tabDiatonic"),
         tabSmooth: document.getElementById("tabSmooth"),
         tabSpice: document.getElementById("tabSpice"),
         suggestGrid: document.getElementById("suggestGrid"),
         currentChordName: document.getElementById("currentChordName"),
         currentRoman: document.getElementById("currentRoman"),
+        currentChordPlayTile: document.getElementById("currentChordPlayTile"),
         currentNotes: document.getElementById("currentNotes"),
         addToProgBtn: document.getElementById("addToProgBtn"),
         progressionStrip: document.getElementById("progressionStrip"),
@@ -703,7 +703,6 @@
         clearProgBtn: document.getElementById("clearProgBtn"),
         historyStrip: document.getElementById("historyStrip"),
         clearHistoryBtn: document.getElementById("clearHistoryBtn"),
-        playBtn: document.getElementById("playBtn"),
         audioBtn: document.getElementById("audioBtn"),
         colorTriad: document.getElementById("colorTriad"),
         color7: document.getElementById("color7"),
@@ -1147,6 +1146,13 @@
         if (currentChord?.notes?.length) {
           for (const n of currentChord.notes) el.currentNotes.appendChild(chip(n, "emerald"));
         }
+        if (el.currentChordPlayTile) {
+          const playable = !!(currentChord?.notes?.length);
+          el.currentChordPlayTile.disabled = !playable;
+          el.currentChordPlayTile.title = playable
+            ? `Play: ${currentChord?.name || ""}`
+            : "No chord to play yet";
+        }
         renderPianoHighlights(currentChord?.notes || []);
       }
 
@@ -1338,10 +1344,13 @@
 
       function setCurrentChordVariant(target) {
         if (!currentChord?.name) return;
+        state.ext = target;
         const name = chordVariantName(currentChord.name, target);
         const notes = (Tonal.Chord.get(name)?.notes || []).map(normalizePc);
         setCurrentChord({ name, roman: currentChord.roman, notes, tag: currentChord.tag });
         playCurrentChord();
+        recomputeAndRender();
+        persistToHash();
       }
 
       function addCurrentToProgression() {
@@ -1658,7 +1667,6 @@
         }
         el.rootSelect.value = state.root;
         el.scaleSelect.value = state.mode;
-        if (el.extSelect) el.extSelect.value = state.ext;
 
         el.rootSelect.addEventListener("change", () => {
           state.root = el.rootSelect.value;
@@ -1668,12 +1676,6 @@
         });
         el.scaleSelect.addEventListener("change", () => {
           state.mode = el.scaleSelect.value;
-          currentChord = null;
-          recomputeAndRender();
-          persistToHash();
-        });
-        el.extSelect?.addEventListener("change", () => {
-          state.ext = el.extSelect.value;
           currentChord = null;
           recomputeAndRender();
           persistToHash();
@@ -1705,7 +1707,6 @@
       });
 
       el.addToProgBtn?.addEventListener("click", () => addCurrentToProgression());
-      el.suggestAddBtn?.addEventListener("click", () => addCurrentToProgression());
 
       function setSuggestTab(tab) {
         state.suggestTab = tab;
@@ -1820,10 +1821,10 @@
         setStatus(`Diagnostics:\n${pretty}`);
       });
 
-      el.playBtn.addEventListener("click", () => playCurrentChord());
       el.colorTriad?.addEventListener("click", () => setCurrentChordVariant("triad"));
       el.color7?.addEventListener("click", () => setCurrentChordVariant("7"));
       el.color9?.addEventListener("click", () => setCurrentChordVariant("9"));
+      el.currentChordPlayTile?.addEventListener("click", () => playCurrentChord());
 
       el.audioBtn.addEventListener("click", async () => {
         try {
